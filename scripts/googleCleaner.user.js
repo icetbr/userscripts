@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Google Cleaner
 // @description Moves the top bar (All, Videos, News...) to sidebar, hides Top Stories and other "rich search content"
-// @version     3.10
+// @version     3.11
 // @author      icetbr
 
 // @match       http://www.google.*/search*
