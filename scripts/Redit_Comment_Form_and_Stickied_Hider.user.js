@@ -4,7 +4,7 @@
 // @version     1.2
 // @author      icetbr
 
-// @match       http*://www.reddit.com/**
+// @include       http*://www.reddit.com/**
 
 // @license     MIT
 // @namespace   https://github.com/icetbr/userscripts

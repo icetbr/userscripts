@@ -4,13 +4,13 @@
 // @version     3.12
 // @author      icetbr
 
-// @match       http://www.google.*/search*
-// @match       http://www.google.*/webhp*
-// @match       http://www.google.*/images*
-// @match       http://www.google.*/imghp*
-// @match       https://www.google.*/search*
-// @match       https://www.google.*/webhp*
-// @match       https://encrypted.google.com/search*
+// @include       http://www.google.*/search*
+// @include       http://www.google.*/webhp*
+// @include       http://www.google.*/images*
+// @include       http://www.google.*/imghp*
+// @include       https://www.google.*/search*
+// @include       https://www.google.*/webhp*
+// @include       https://encrypted.google.com/search*
 
 // @license     MIT
 // @namespace   https://github.com/icetbr/userscripts

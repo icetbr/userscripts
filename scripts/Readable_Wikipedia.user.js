@@ -4,7 +4,7 @@
 // @version     1.1
 // @author      icetbr
 
-// @match       http*://*.wikipedia.org/**
+// @include       http*://*.wikipedia.org/**
 
 // @license     MIT
 // @namespace   https://github.com/icetbr/userscripts

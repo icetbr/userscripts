@@ -4,7 +4,7 @@
 // @version     1.1
 // @author      icetbr
 
-// @match       https://mail.google.com/*
+// @include       https://mail.google.com/*
 
 // @license     MIT
 // @namespace   https://github.com/icetbr/userscripts

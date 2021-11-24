@@ -4,8 +4,8 @@
 // @version     2.3
 // @author      icetbr
 
-// @match       https://medium.com/*
-// @match       https://hackernoon.com*
+// @include       https://medium.com/*
+// @include       https://hackernoon.com*
 
 // @license     MIT
 // @namespace   https://github.com/icetbr/userscripts

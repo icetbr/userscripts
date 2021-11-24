@@ -4,8 +4,8 @@
 // @version     1.1
 // @author      icetbr
 
-// @match       https://firebase.google.com/docs/**
-// @match       https://cloud.google.com/**
+// @include       https://firebase.google.com/docs/**
+// @include       https://cloud.google.com/**
 
 // @license     MIT
 // @namespace   https://github.com/icetbr/userscripts

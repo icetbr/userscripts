@@ -4,7 +4,7 @@
 // @version     1.1
 // @author      icetbr
 
-// @match       https://news.ycombinator.com/*
+// @include       https://news.ycombinator.com/*
 
 // @license     MIT
 // @namespace   https://github.com/icetbr/userscripts

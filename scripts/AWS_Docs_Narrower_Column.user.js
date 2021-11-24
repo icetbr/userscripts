@@ -4,7 +4,7 @@
 // @version     1.1
 // @author      icetbr
 
-// @match       https://docs.aws.amazon.com/*
+// @include       https://docs.aws.amazon.com/*
 
 // @license     MIT
 // @namespace   https://github.com/icetbr/userscripts
