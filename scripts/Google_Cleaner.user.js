@@ -14,8 +14,8 @@
 
 // @license     MIT
 // @namespace   https://github.com/icetbr/userscripts
-// @downloadURL https://openuserjs.org/src/scripts/icetbr/Google_Cleaner.user.js
 // @updateURL   https://openuserjs.org/meta/icetbr/Google_Cleaner.meta.js
+// @downloadURL https://openuserjs.org/src/scripts/icetbr/Google_Cleaner.user.js
 // ==/UserScript==
 /* jshint esversion: 6 */
 

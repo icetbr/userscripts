@@ -8,6 +8,8 @@
 
 // @license     MIT
 // @namespace   https://github.com/icetbr/userscripts
+// @updateURL   https://openuserjs.org/meta/icetbr/AWS_Docs_Narrower_Column.meta.js
+// @downloadURL https://openuserjs.org/install/icetbr/AWS_Docs_Narrower_Column.user.js
 // ==/UserScript==
 /* jshint esversion: 6 */
 
