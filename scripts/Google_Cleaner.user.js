@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Google Cleaner
 // @description Moves the top bar (All, Videos, News...) to sidebar, hides "rich search content", old style links
-// @version     3.12
+// @version     3.2
 // @author      icetbr
 
 // @include       http://www.google.*/search*
@@ -77,8 +77,8 @@ function showPastHourPosts() { doLink("qdr:h"); }
 function showPast24HoursPosts() { doLink("qdr:d"); }
 function showPastWeekPosts() { doLink("qdr:w"); }
 function showPastMonthPosts() { doLink("qdr:m"); }
-function showCustomRangePosts() { document.querySelectorAll('[jsname="oYxtQd"]')[2].click(); }
-
+//function showCustomRangePosts() { document.querySelectorAll('[jsname="NNJLud"]')[13].click(); }
+function showCustomRangePosts() { document.getElementsByClassName('n5Ug4b').style.display = 'block'; }
 
 function doLink(tbsParam) {
     const params = new window.URLSearchParams(window.location.search);
@@ -102,8 +102,9 @@ function dom(nodeString) {
 
 function cleanGoogle() {
     GM_addStyle_from_string(`
-        .ULSxyf, /* Videos and People also Ask sessions */
-        .zSS54d {
+        .ULSxyf,             /* Videos and People also Ask sessions */
+        .csDOgf, .eFM0qc,    /* tree dots for more info */
+        .zSS54d, .xA33Gc {
            display: none;
         }
 
@@ -115,21 +116,13 @@ function cleanGoogle() {
           height: 26px;
         }
 
-        .LC20lb {
-          position: relative;
-          top: -49px;
-        }
-
-        .g {
-           margin-top: 46px;
-        }
-
-        .xA33Gc {
-          display: none;
-        }
-
         .TbwUpd {
-          margin-left: 1px;
+          padding-top: 47px;
+        }
+
+        .yuRUbf > a {
+            position: relative;
+            top: -24px;
         }
 
         .iUh30, .CvmQuf, .eipWBe {
@@ -143,7 +136,6 @@ function GM_addStyle_from_string(str) {
     node.innerHTML = str;
     document.body.appendChild(node);
 }
-
 
 init();
 
