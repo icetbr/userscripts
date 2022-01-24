@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Google Cleaner
 // @description Moves the top bar (All, Videos, News...) to sidebar, hides "rich search content", old style links
-// @version     3.2
+// @version     3.3
 // @author      icetbr
 
 // @include       http://www.google.*/search*
@@ -55,12 +55,12 @@ function toggleFiltersBar() {
 function addLinks() {
     var parent = document.getElementById('rcnt');
 
-    createLink("<div id='bartoggle' style='font-size: 11px; top: 25px; left: 23px; position: absolute'>Toggle topbar</div>", toggleNavBar, parent);
+    createLink("<div id='bartoggle' style='font-size: 11px; top: 15px; left: 23px; position: absolute'>Toggle topbar</div>", toggleNavBar, parent);
 
-    createLink("<div style='font-size: 11px; top: 49px; left: 33px; position: absolute'>Past year</div>", showPastYearPosts, parent);
-    createLink("<div style='font-size: 11px; top: 70px; left: 53px; position: absolute'>+</div>", toggleFiltersBar, parent);
+    createLink("<div style='font-size: 11px; top: 39px; left: 33px; position: absolute'>Past year</div>", showPastYearPosts, parent);
+    createLink("<div style='font-size: 11px; top: 60px; left: 53px; position: absolute'>+</div>", toggleFiltersBar, parent);
 
-    var filtersBar = createLink("<div id='filtersBar' style='font-size: 11px; top: 89px; left: 34px; position: absolute; line-height: 18px'></div>", null, parent);
+    var filtersBar = createLink("<div id='filtersBar' style='font-size: 11px; top: 79px; left: 34px; position: absolute; line-height: 18px'></div>", null, parent);
 
     createLink("<div style=''>Past year</div>", showPastYearPosts, filtersBar);
     createLink("<div style=''>Any time</div>", showAnyTimePosts, filtersBar);
@@ -102,31 +102,41 @@ function dom(nodeString) {
 
 function cleanGoogle() {
     GM_addStyle_from_string(`
-        .ULSxyf,             /* Videos and People also Ask sessions */
-        .csDOgf, .eFM0qc,    /* tree dots for more info */
-        .zSS54d, .xA33Gc {
+        .ULSxyf,                  /* Videos and People also Ask sessions */
+        .csDOgf, .eFM0qc {        /* tree dots for more info */
            display: none;
         }
 
-        #sfcnt {
-          margin-bottom: -15px;
+        #sfcnt {                  /* spacing after search bar */
+          margin-bottom: -5px;
         }
 
-        .r {
-          height: 26px;
+        .g {                      /* spacing between search results */
+          margin-top: -15px;
         }
 
-        .TbwUpd {
-          padding-top: 47px;
+        /* LINKS/TITLE */
+
+        .FxLDp {                  /* sometimes the first entry has an undesired pad */
+          padding-left: 0px;
+        }
+
+        h3.LC20lb.MBeuO.DKV0Md {  /* force (some) links from side to bellow title */
+          display: block;
         }
 
         .yuRUbf > a {
             position: relative;
-            top: -24px;
+            top: -10px;
         }
 
-        .iUh30, .CvmQuf, .eipWBe {
+        .iUh30.qLRx3b.tjvcx {
           color: green
+        }
+
+        .TbwUpd.NJjxre {
+          padding-top: 0px;
+          position: inherit;
         }
       `);
 }
