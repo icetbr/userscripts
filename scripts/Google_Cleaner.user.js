@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Google Cleaner
 // @description Moves the top bar (All, Videos, News...) to sidebar, hides "rich search content", old style links
-// @version     3.3
+// @version     3.4
 // @author      icetbr
 
 // @include       http://www.google.*/search*
@@ -55,12 +55,12 @@ function toggleFiltersBar() {
 function addLinks() {
     var parent = document.getElementById('rcnt');
 
-    createLink("<div id='bartoggle' style='font-size: 11px; top: 15px; left: 23px; position: absolute'>Toggle topbar</div>", toggleNavBar, parent);
+    createLink("<div id='bartoggle' style='font-size: 11px; top: 95px; left: 23px; position: absolute; z-index: 999'>Toggle topbar</div>", toggleNavBar, parent);
 
-    createLink("<div style='font-size: 11px; top: 39px; left: 33px; position: absolute'>Past year</div>", showPastYearPosts, parent);
-    createLink("<div style='font-size: 11px; top: 60px; left: 53px; position: absolute'>+</div>", toggleFiltersBar, parent);
+    createLink("<div style='font-size: 11px; top: 119px; left: 33px; position: absolute; z-index: 999'>Past year</div>", showPastYearPosts, parent);
+    createLink("<div style='font-size: 11px; top: 140px; left: 53px; position: absolute; z-index: 999'>+</div>", toggleFiltersBar, parent);
 
-    var filtersBar = createLink("<div id='filtersBar' style='font-size: 11px; top: 79px; left: 34px; position: absolute; line-height: 18px'></div>", null, parent);
+    var filtersBar = createLink("<div id='filtersBar' style='font-size: 11px; top: 159px; left: 34px; position: absolute; line-height: 18px; z-index: 999'></div>", null, parent);
 
     createLink("<div style=''>Past year</div>", showPastYearPosts, filtersBar);
     createLink("<div style=''>Any time</div>", showAnyTimePosts, filtersBar);
