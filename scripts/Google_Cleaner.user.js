@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Google Cleaner
 // @description Moves the top bar (All, Videos, News...) to sidebar, hides "rich search content", old style links
-// @version     3.4.1
+// @version     3.5
 // @author      icetbr
 
 // @include       http://www.google.*/search*
@@ -57,10 +57,11 @@ function addLinks() {
 
     createLink("<div id='bartoggle' style='font-size: 11px; top: 95px; left: 23px; position: absolute; z-index: 999'>Toggle topbar</div>", toggleNavBar, parent);
 
-    createLink("<div style='font-size: 11px; top: 119px; left: 33px; position: absolute; z-index: 999'>Past year</div>", showPastYearPosts, parent);
-    createLink("<div style='font-size: 11px; top: 140px; left: 53px; position: absolute; z-index: 999'>+</div>", toggleFiltersBar, parent);
+    createLink("<div style='font-size: 11px; top: 119px; left: 12px; position: absolute; z-index: 999'>Toggle english only</div>", toggleEnglishOnly, parent);
+    createLink("<div style='font-size: 11px; top: 140px; left: 33px; position: absolute; z-index: 999'>Past year</div>", showPastYearPosts, parent);
+    createLink("<div style='font-size: 11px; top: 161px; left: 53px; position: absolute; z-index: 999'>+</div>", toggleFiltersBar, parent);
 
-    var filtersBar = createLink("<div id='filtersBar' style='font-size: 11px; top: 159px; left: 34px; position: absolute; line-height: 18px; z-index: 999'></div>", null, parent);
+    var filtersBar = createLink("<div id='filtersBar' style='font-size: 11px; top: 178px; left: 34px; position: absolute; line-height: 18px; z-index: 999'></div>", null, parent);
 
     createLink("<div style=''>Past year</div>", showPastYearPosts, filtersBar);
     createLink("<div style=''>Any time</div>", showAnyTimePosts, filtersBar);
@@ -71,6 +72,12 @@ function addLinks() {
     createLink("<div style=''>Custom range</div>", showCustomRangePosts, filtersBar);
 }
 
+function toggleEnglishOnly() {
+    const params = new window.URLSearchParams(window.location.search);
+    params.has('gl') ? params.delete('gl') : params.set('gl', 'us');
+    document.location.href = `?${params.toString()}`;
+}
+
 function showPastYearPosts() { doLink("qdr:y"); }
 function showAnyTimePosts() { doLink("qdr:"); }
 function showPastHourPosts() { doLink("qdr:h"); }
@@ -78,7 +85,9 @@ function showPast24HoursPosts() { doLink("qdr:d"); }
 function showPastWeekPosts() { doLink("qdr:w"); }
 function showPastMonthPosts() { doLink("qdr:m"); }
 //function showCustomRangePosts() { document.querySelectorAll('[jsname="NNJLud"]')[13].click(); }
-function showCustomRangePosts() { document.getElementsByClassName('n5Ug4b').style.display = 'block'; }
+function showCustomRangePosts() { document.querySelectorAll('[jsaction="EEGHee"]')[0].click(); }
+//function showCustomRangePosts() { document.getElementsByClassName('n5Ug4b').style.display = 'block'; }
+
 
 function doLink(tbsParam) {
     const params = new window.URLSearchParams(window.location.search);
