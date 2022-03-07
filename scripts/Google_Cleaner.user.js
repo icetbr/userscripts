@@ -1,16 +1,10 @@
 // ==UserScript==
 // @name        Google Cleaner
 // @description Moves the top bar (All, Videos, News...) to sidebar, hides "rich search content", old style links
-// @version     3.5
+// @version     3.6
 // @author      icetbr
 
-// @include       http://www.google.*/search*
-// @include       http://www.google.*/webhp*
-// @include       http://www.google.*/images*
-// @include       http://www.google.*/imghp*
 // @include       https://www.google.*/search*
-// @include       https://www.google.*/webhp*
-// @include       https://encrypted.google.com/search*
 
 // @license     MIT
 // @namespace   https://github.com/icetbr/userscripts
@@ -29,7 +23,7 @@ function init() {
 }
 
 var isBarVisible = false;
-var hideNavBarStyle = dom("<style type='text/css'>#top_nav, #appbar {display:none;}</style>");
+var hideNavBarStyle = style("#top_nav, #appbar {display:none;}");
 function toggleNavBar() {
     if (isBarVisible) {
         head.removeChild(hideNavBarStyle);
@@ -39,9 +33,14 @@ function toggleNavBar() {
 
     isBarVisible = !isBarVisible;
 }
+function ensureNavBar() {
+    if (!isBarVisible) return;
+    head.removeChild(hideNavBarStyle);
+    isBarVisible = !isBarVisible;
+}
 
 var isFiltersBarVisible = false;
-var hideFiltersBarStyle = dom("<style type='text/css'>#filtersBar {display:none;}</style>");
+var hideFiltersBarStyle = style("#filtersBar {display:none;}");
 function toggleFiltersBar() {
     if (isFiltersBarVisible) {
         head.removeChild(hideFiltersBarStyle);
@@ -55,21 +54,21 @@ function toggleFiltersBar() {
 function addLinks() {
     var parent = document.getElementById('rcnt');
 
-    createLink("<div id='bartoggle' style='font-size: 11px; top: 95px; left: 23px; position: absolute; z-index: 999'>Toggle topbar</div>", toggleNavBar, parent);
+    createLink({ id: 'bartoggle', style: 'font-size: 11px; top: 95px; left: 23px; position: absolute; z-index: 999', textContent: 'Toggle topbar' }, toggleNavBar, parent);
 
-    createLink("<div style='font-size: 11px; top: 119px; left: 12px; position: absolute; z-index: 999'>Toggle english only</div>", toggleEnglishOnly, parent);
-    createLink("<div style='font-size: 11px; top: 140px; left: 33px; position: absolute; z-index: 999'>Past year</div>", showPastYearPosts, parent);
-    createLink("<div style='font-size: 11px; top: 161px; left: 53px; position: absolute; z-index: 999'>+</div>", toggleFiltersBar, parent);
+    createLink({ style: 'font-size: 11px; top: 119px; left: 12px; position: absolute; z-index: 999', textContent: 'Toggle english only' }, toggleEnglishOnly, parent);
+    createLink({ style: 'font-size: 11px; top: 140px; left: 33px; position: absolute; z-index: 999', textContent: 'Past year' }, showPastYearPosts, parent);
+    createLink({ style: 'font-size: 11px; top: 161px; left: 53px; position: absolute; z-index: 999', textContent: '+' }, toggleFiltersBar, parent);
 
-    var filtersBar = createLink("<div id='filtersBar' style='font-size: 11px; top: 178px; left: 34px; position: absolute; line-height: 18px; z-index: 999'></div>", null, parent);
+    var filtersBar = createLink({ id: 'filtersBar', style: 'font-size: 11px; top: 178px; left: 34px; position: absolute; line-height: 18px; z-index: 999' }, null, parent);
 
-    createLink("<div style=''>Past year</div>", showPastYearPosts, filtersBar);
-    createLink("<div style=''>Any time</div>", showAnyTimePosts, filtersBar);
-    createLink("<div style=''>Past hour</div>", showPastHourPosts, filtersBar);
-    createLink("<div style=''>Past 24 hours</div>", showPast24HoursPosts, filtersBar);
-    createLink("<div style=''>Past week</div>", showPastWeekPosts, filtersBar);
-    createLink("<div style=''>Past month</div>", showPastMonthPosts, filtersBar);
-    createLink("<div style=''>Custom range</div>", showCustomRangePosts, filtersBar);
+    createLink({ textContent: 'Past year' }, showPastYearPosts, filtersBar);
+    createLink({ textContent: 'Any time' }, showAnyTimePosts, filtersBar);
+    createLink({ textContent: 'Past hour' }, showPastHourPosts, filtersBar);
+    createLink({ textContent: 'Past 24 hours' }, showPast24HoursPosts, filtersBar);
+    createLink({ textContent: 'Past week' }, showPastWeekPosts, filtersBar);
+    createLink({ textContent: 'Past month' }, showPastMonthPosts, filtersBar);
+    createLink({ textContent: 'Custom range' }, showCustomRangePosts, filtersBar);
 }
 
 function toggleEnglishOnly() {
@@ -84,9 +83,17 @@ function showPastHourPosts() { doLink("qdr:h"); }
 function showPast24HoursPosts() { doLink("qdr:d"); }
 function showPastWeekPosts() { doLink("qdr:w"); }
 function showPastMonthPosts() { doLink("qdr:m"); }
+
+// this keeps breaking, maybe use parent with jsowner=ow86?
+function showCustomRangePosts() {
+    ensureNavBar();
+    document.querySelectorAll('[jsaction="EEGHee"]')[0].click();
+    //document.getElementsByClassName('n5Ug4b')[0].style.display = 'block';
+
+}
 //function showCustomRangePosts() { document.querySelectorAll('[jsname="NNJLud"]')[13].click(); }
-function showCustomRangePosts() { document.querySelectorAll('[jsaction="EEGHee"]')[0].click(); }
-//function showCustomRangePosts() { document.getElementsByClassName('n5Ug4b').style.display = 'block'; }
+//function showCustomRangePosts() { document.querySelectorAll('[jsaction="EEGHee"]')[0].click(); }
+
 
 
 function doLink(tbsParam) {
@@ -95,22 +102,24 @@ function doLink(tbsParam) {
     document.location.href = `?${params.toString()}`;
 }
 
-function createLink(nodeString, onclick, parent) {
+function createLink(attrs, onclick, parent) {
     if (!parent) return null;
-    var link = dom(nodeString);
+    var link = div(attrs);
     link.addEventListener("click", onclick, false);
     parent.appendChild(link);
     return link;
 }
 
-function dom(nodeString) {
-    var div = document.createElement('div');
-    div.innerHTML = nodeString;
-    return div.firstChild;
+function div(attrs) {
+    return Object.assign(document.createElement('div'), attrs)
+}
+
+function style(styles) {
+    return Object.assign(document.createElement('style'), { type: 'text/css' }, { textContent: styles });
 }
 
 function cleanGoogle() {
-    GM_addStyle_from_string(`
+    document.body.appendChild(style(`
         .ULSxyf,                  /* Videos and People also Ask sessions */
         .csDOgf, .eFM0qc {        /* tree dots for more info */
            display: none;
@@ -147,13 +156,7 @@ function cleanGoogle() {
           padding-top: 0px;
           position: inherit;
         }
-      `);
-}
-
-function GM_addStyle_from_string(str) {
-    var node = document.createElement('style');
-    node.innerHTML = str;
-    document.body.appendChild(node);
+      `));
 }
 
 init();
