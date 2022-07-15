@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Google Cleaner
 // @description Moves the top bar (All, Videos, News...) to sidebar, hides "rich search content", old style links
-// @version     3.6
+// @version     3.7
 // @author      icetbr
 
 // @include       https://www.google.*/search*
@@ -20,6 +20,7 @@ function init() {
     toggleFiltersBar();
     addLinks();
     cleanGoogle();
+    jsCleanGoogle();
 }
 
 var isBarVisible = false;
@@ -91,10 +92,6 @@ function showCustomRangePosts() {
     //document.getElementsByClassName('n5Ug4b')[0].style.display = 'block';
 
 }
-//function showCustomRangePosts() { document.querySelectorAll('[jsname="NNJLud"]')[13].click(); }
-//function showCustomRangePosts() { document.querySelectorAll('[jsaction="EEGHee"]')[0].click(); }
-
-
 
 function doLink(tbsParam) {
     const params = new window.URLSearchParams(window.location.search);
@@ -119,18 +116,19 @@ function style(styles) {
 }
 
 function cleanGoogle() {
+    //.XqFnDf class for bar with Overview, Songs, Albuns, etc
     document.body.appendChild(style(`
-        .ULSxyf,                  /* Videos and People also Ask sessions */
+        /*.ULSxyf,                  Videos and People also Ask sessions */
         .csDOgf, .eFM0qc {        /* tree dots for more info */
            display: none;
         }
 
-        #sfcnt {                  /* spacing after search bar */
-          margin-bottom: -5px;
-        }
-
         .g {                      /* spacing between search results */
           margin-top: -15px;
+        }
+
+        .hlcw0c {                           /* space after hidden sections */
+          margin-bottom: 0px !important;
         }
 
         /* LINKS/TITLE */
@@ -156,7 +154,29 @@ function cleanGoogle() {
           padding-top: 0px;
           position: inherit;
         }
-      `));
+    `));
+}
+
+function jsCleanGoogle() {
+    const bres = document.getElementById('bres');
+    if (bres.innerText.indexOf('Related searches') > -1) bres.style.display = 'none';
+
+    let blocks = document.getElementsByClassName('cLjAic TzHB6b');
+    if (!blocks.length) blocks = document.getElementsByClassName('ULSxyf');
+
+    for (const block of blocks) {
+        if (block.innerText.indexOf('Images') === 0) block.style.display = 'none'; // More images?
+        else if (block.innerText.indexOf('Videos') === 0) block.style.display = 'none';
+        else if (block.innerText.indexOf('People also ask') === 0) block.style.display = 'none';
+        else if (block.innerText.indexOf('Twitter Results') === 0) block.style.display = 'none';
+        else if (block.innerText.indexOf('Top stories') === 0) block.style.display = 'none';
+        else if (block.innerText.indexOf('Related searches') === 0) block.style.display = 'none';
+        else {
+            //if (block.innerText !== '<empty string>') cleaned = true
+            // console.log(block.innerText)
+            // console.log('****************************')
+        }
+    }
 }
 
 init();
