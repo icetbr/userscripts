@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name        Google Cleaner
 // @description Moves the top bar (All, Videos, News...) to sidebar, hides "rich search content", old style links
-// @version     3.7.1
+// @version     3.7.2
 // @author      icetbr
 
-// @include       https://www.google.*/search*
+// @include     https://www.google.*/search*
+// @icon        https://www.google.com/s2/favicons?domain=google.com
 
 // @license     MIT
 // @namespace   https://github.com/icetbr/userscripts
@@ -93,7 +94,7 @@ const cleanGoogle = () => {
         }
 
         .g {                                /* spacing between search results */
-          margin-top: -15px;
+          margin-top: -20px;
         }
 
         .hlcw0c {                           /* space after hidden sections */
@@ -115,7 +116,7 @@ const cleanGoogle = () => {
             top: -10px;
         }
 
-        .iUh30.tjvcx {
+        .qLRx3b.tjvcx {
           color: green
         }
 
