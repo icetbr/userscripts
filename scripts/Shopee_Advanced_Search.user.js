@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name        Shopee Advanced Search
 // @description Filter search results containing ALL specified words, supporting word exclusion
-// @version     1.0.0
+// @version     1.0.1
 // @author      icetbr
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=shopee.com.br
 // @include     https://shopee.*/*
 // @license     MIT
 // @namespace   https://github.com/icetbr/userscripts
-// @updateURL   https://openuserjs.org/meta/icetbr/Google_Cleaner.meta.js
-// @downloadURL https://openuserjs.org/src/scripts/icetbr/Google_Cleaner.user.js
+// @updateURL   https://openuserjs.org/meta/icetbr/Shopee_Advanced_Search.meta.js
+// @downloadURL https://openuserjs.org/src/scripts/icetbr/Shopee_Advanced_Search.user.js
 // @grant       none
 // ==/UserScript==
 const $ = document.querySelector.bind(document),
@@ -23,34 +23,7 @@ const $ = document.querySelector.bind(document),
         .trim()
         .toLowerCase()
         .normalize("NFD")
-        .replace(/\p{Diacritic}/gu, ""),
-
-    waitForElm = selector => new Promise(resolve => {
-        if ($(selector)) return resolve($(selector));
-
-        const observer = new MutationObserver(() => {
-            if (!$(selector)) return;
-
-            resolve($(selector));
-            observer.disconnect();
-        });
-
-        observer.observe(document.body, { childList: true, subtree: true });
-    }),
-
-    onFetch = (fn, url = 'any') => {
-        const observer = new PerformanceObserver((list) => {
-            for (const entry of list.getEntries()) {
-                if (entry.initiatorType === "fetch" && (url === 'any' || url === entry.name)) {
-
-                    fn();
-                    return;
-                }
-            }
-        });
-
-        observer.observe({ entryTypes: ["resource"] });
-    };
+        .replace(/\p{Diacritic}/gu, "");
 
 const split = value => value ? value.split(' ') : [];
 
@@ -71,7 +44,7 @@ const filter = ($searchedWordsInput, $excludedWordsInput) => () => {
     const lacksAllSearchedWords = element => !searchedWords.every(w => element.dataset.searcheableText.includes(w));
     const hasAnyExcludedWords = element => excludedWords.some(w => element.dataset.searcheableText.includes(w));
 
-    const withSearcheableText = el => (el.dataset.searcheableText = toSearcheable(el.textContent), el);
+    const withSearcheableText = el => (el.dataset.searcheableText = toSearcheable(el.querySelector('.Cve6sh')?.textContent ?? ''), el);
 
     const toggleHidden = (count, el) => {
         if (lacksAllSearchedWords(el) || hasAnyExcludedWords(el)) {
@@ -83,21 +56,26 @@ const filter = ($searchedWordsInput, $excludedWordsInput) => () => {
         return count;
     };
 
-    const $loadedProducts = $products.filter(p => p.textContent);
-    const hiddenCount = $loadedProducts
+    const $loadedProducts = $products
         .map(withSearcheableText)
-        .reduce(toggleHidden, 0);
+        .filter(p => p.dataset.searcheableText);
+
+    const hiddenCount = $loadedProducts.reduce(toggleHidden, 0);
 
     const excludedMsg = excludedWords.length ? ` -'${excludedWords.join(' ')}'` : '';
     console.log(`${$products.length} products, ${$loadedProducts.length} loaded, ${hiddenCount} hidden for '${searchedWords.join(' ')}'${excludedMsg}`);
 };
 
-const enable = ($searchbar) => {
+let filterProducts;
+const enable = () => {
+    $searchBar = $('.shopee-searchbar-input');
+    if (!$searchBar || $searchBar.querySelector('#excludedWords')) return;
+
     console.log('shopee filter enabled');
 
     const $searchedWordsInput = $('.shopee-searchbar-input__input');
-    const $excludedWordsInput = el('input', { placeholder: 'excluir palavras', onkeyup: function(e) { if (e.key === 'Enter') filterProducts(); }  });
-    const filterProducts = filter($searchedWordsInput, $excludedWordsInput);
+    const $excludedWordsInput = el('input', { id: 'excludedWords', placeholder: 'excluir palavras', onkeyup: function(e) { if (e.key === 'Enter') filterProducts(); } });
+    filterProducts = filter($searchedWordsInput, $excludedWordsInput);
 
     const $filterButton = el('button', {
         type: 'button',
@@ -110,11 +88,12 @@ const enable = ($searchbar) => {
         `
     });
 
-    onFetch(filterProducts, 'https://shopee.com.br/__t__');
-
-    $searchbar.appendChild($excludedWordsInput);
-    $searchbar.appendChild($filterButton);
-    $searchbar.appendChild($turnOffButton);
+    $searchBar.appendChild($excludedWordsInput);
+    $searchBar.appendChild($filterButton);
 };
 
-waitForElm('.shopee-searchbar-input').then(enable);
+const observer = new MutationObserver(() => {
+    enable();
+    filterProducts && filterProducts();
+});
+observer.observe(document.body, { childList: true, subtree: true });
