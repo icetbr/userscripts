@@ -11,9 +11,10 @@
 // @downloadURL https://openuserjs.org/src/scripts/icetbr/Shopee_Advanced_Search.user.js
 // @grant       none
 // ==/UserScript==
-const $ = document.querySelector.bind(document),
+const
+    $  = (selector, parent = document) => parent.querySelector(selector),
 
-    $$ = document.querySelectorAll.bind(document),
+    $$ = (selector, parent = document) => Array.from(parent.querySelectorAll(selector)),
 
     el = (name, attrs) => Object.assign(document.createElement(name), attrs),
 
@@ -22,8 +23,10 @@ const $ = document.querySelector.bind(document),
     toSearcheable = string => string
         .trim()
         .toLowerCase()
-        .normalize("NFD")
-        .replace(/\p{Diacritic}/gu, "");
+        .normalize('NFD')
+        .replace(/\p{Diacritic}/gu, ''),
+
+    isBrazil = () => window.location.hostname.endsWith('.br');
 
 const split = value => value ? value.split(' ') : [];
 
@@ -37,14 +40,17 @@ const filterIconSvg = `
     </svg>`;
 
 const filter = ($searchedWordsInput, $excludedWordsInput) => () => {
-    const $products = Array.from($$('.shopee-search-item-result__item'));
+    const $products = $$('.shopee-search-item-result__item');
     const searchedWords = split(toSearcheable($searchedWordsInput.value));
     const excludedWords = split(toSearcheable($excludedWordsInput.value));
 
     const lacksAllSearchedWords = element => !searchedWords.every(w => element.dataset.searcheableText.includes(w));
     const hasAnyExcludedWords = element => excludedWords.some(w => element.dataset.searcheableText.includes(w));
 
-    const withSearcheableText = el => (el.dataset.searcheableText = toSearcheable(el.querySelector('.Cve6sh')?.textContent ?? ''), el);
+    const withSearcheableText = el => {
+        el.dataset.searcheableText = toSearcheable(el.querySelector('.Cve6sh')?.textContent ?? '');
+        return el;
+    };
 
     const toggleHidden = (count, el) => {
         if (lacksAllSearchedWords(el) || hasAnyExcludedWords(el)) {
@@ -68,13 +74,13 @@ const filter = ($searchedWordsInput, $excludedWordsInput) => () => {
 
 let filterProducts;
 const enable = () => {
-    $searchBar = $('.shopee-searchbar-input');
+    const $searchBar = $('.shopee-searchbar-input');
     if (!$searchBar || $searchBar.querySelector('#excludedWords')) return;
 
     console.log('shopee filter enabled');
 
     const $searchedWordsInput = $('.shopee-searchbar-input__input');
-    const $excludedWordsInput = el('input', { id: 'excludedWords', placeholder: 'excluir palavras', onkeyup: function(e) { if (e.key === 'Enter') filterProducts(); } });
+    const $excludedWordsInput = el('input', { id: 'excludedWords', placeholder: isBrazil() ? 'excluir palavras' : 'exclude words', onkeyup: function(e) { if (e.key === 'Enter') filterProducts(); } });
     filterProducts = filter($searchedWordsInput, $excludedWordsInput);
 
     const $filterButton = el('button', {
@@ -85,7 +91,7 @@ const enable = () => {
             padding: 13px;
             margin-top: 3px;
             border: none;
-        `
+        `,
     });
 
     $searchBar.appendChild($excludedWordsInput);
