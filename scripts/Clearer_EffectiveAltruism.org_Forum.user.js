@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Clearer EffectiveAltruism.org Forum
 // @description More familiar, clean and compact forum UX, with an improved topics organization
-// @version     0.8.3
+// @version     0.8.4
 // @author      icetbr
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=effectivealtruism.org
 // @license     MIT
@@ -15,7 +15,7 @@ var style$1 = /*css*/`
 
 .Layout-main, body                { background-color: #fff; }
 .NavigationStandalone-sidebar     { padding-top: 0; }
-.Layout-main                      { margin-top: -140px; z-index: 2000; }
+.Layout-main                      { margin-top: -140px; z-index: 1301; }
 .Header-appBar, .PostsList2-posts { box-shadow: unset; }
 .PostsItem2-bottomBorder          { border-bottom: unset; line-height: 1.4rem; }
 .PostsTitle-root                  { font-size: 1.0rem; line-height: 1.0rem; word-break: break-all; display: contents; }
@@ -33,6 +33,10 @@ var style$1 = /*css*/`
 /* Individual Posts */
 .ToCColumn-header, .PostsPagePostHeader-header {
   z-index: 1301;
+}
+
+.MuiModal-root {
+  z-index: 1310
 }
 
 .PostsPagePostFooter-footerSection {
