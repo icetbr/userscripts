@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Clearer EffectiveAltruism.org Forum
 // @description More familiar, clean and compact forum UX, with an improved topics organization
-// @version     0.8.2
+// @version     0.8.3
 // @author      icetbr
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=effectivealtruism.org
 // @license     MIT
@@ -31,7 +31,7 @@ var style$1 = /*css*/`
 .PostsTitle-root { font-size: 12px; color: rgb(34, 34, 34); font-family: verdana, arial, helvetica, sans-serif; display: contents;}
 
 /* Individual Posts */
-.ToCColumn-header {
+.ToCColumn-header, .PostsPagePostHeader-header {
   z-index: 1301;
 }
 
