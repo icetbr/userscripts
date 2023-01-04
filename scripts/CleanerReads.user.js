@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name        CleanerReads - A goodreads.com Theme
 // @description Nothing removed, just muted or moved out of the way.
-// @version     1.0.0
+// @version     1.0.1
 // @author      icetbr
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=goodreads.com
 // @license     MIT
 // @namespace   https://github.com/icetbr/userscripts
 // @updateURL   https://openuserjs.org/meta/icetbr/CleanerReads.meta.js
 // @downloadURL https://openuserjs.org/src/scripts/icetbr/CleanerReads.user.js
-// @match       https://goodreads.com/*
+// @match       https://www.goodreads.com/*
 // @grant       none
 // ==/UserScript==
 var style$1 = /*css*/`
