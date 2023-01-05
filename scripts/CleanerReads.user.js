@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        CleanerReads - A goodreads.com Theme
 // @description Nothing removed, just muted or moved out of the way.
-// @version     1.0.1
+// @version     1.0.2
 // @author      icetbr
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=goodreads.com
 // @license     MIT
@@ -38,7 +38,7 @@ var style$1 = /*css*/`
 .siteHeader__topFullImageContainer /* selector for old goodreads design */
  { position: absolute; transform-origin: top right; right: 0; top: 55vw; transform: rotate(90deg); }
 
- .BookCover__image { width: 187px; } /* resizes large covers to prevent overlap */
+ /* .BookCover__image { width: 187px; } resizes large covers to prevent overlap */
  .ResponsiveImage { max-height: 330px; }
 
  /*****************/
