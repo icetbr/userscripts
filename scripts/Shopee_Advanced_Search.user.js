@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Shopee Advanced Search
-// @description Filter search results containing ALL specified words, supporting word exclusion
-// @version     1.0.1
+// @description Filter search results containing ALL specified words, supporting word exclusion and minimum sold.
+// @version     1.1.0
 // @author      icetbr
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=shopee.com.br
 // @include     https://shopee.*/*
@@ -9,10 +9,10 @@
 // @namespace   https://github.com/icetbr/userscripts
 // @updateURL   https://openuserjs.org/meta/icetbr/Shopee_Advanced_Search.meta.js
 // @downloadURL https://openuserjs.org/src/scripts/icetbr/Shopee_Advanced_Search.user.js
+// @match       <all_urls>
 // @grant       none
 // ==/UserScript==
-const
-    $  = (selector, parent = document) => parent.querySelector(selector),
+const $  = (selector, parent = document) => parent.querySelector(selector),
 
     $$ = (selector, parent = document) => Array.from(parent.querySelectorAll(selector)),
 
@@ -20,13 +20,16 @@ const
 
     toBase64 = svg => `data:image/svg+xml;base64,${window.btoa(svg)}`,
 
-    toSearcheable = string => string
+    toSearchable = string => string
         .trim()
         .toLowerCase()
         .normalize('NFD')
         .replace(/\p{Diacritic}/gu, ''),
 
-    isBrazil = () => window.location.hostname.endsWith('.br');
+    isBrazil = () => window.location.hostname.endsWith('.br'),
+
+    onMutation = fn => new MutationObserver(fn)
+        .observe(document.body, { childList: true, subtree: true });
 
 const split = value => value ? value.split(' ') : [];
 
@@ -39,67 +42,86 @@ const filterIconSvg = `
         </g>
     </svg>`;
 
-const filter = ($searchedWordsInput, $excludedWordsInput) => () => {
-    const $products = $$('.shopee-search-item-result__item');
-    const searchedWords = split(toSearcheable($searchedWordsInput.value));
-    const excludedWords = split(toSearcheable($excludedWordsInput.value));
+    const filter = ($searchedWordsInput, $excludedWordsInput, $minimumSoldInput) => () => {
+        const $products = $$('.shopee-search-item-result__item');
+        const searchedWords = split(toSearchable($searchedWordsInput.value));
+        const excludedWords = split(toSearchable($excludedWordsInput.value));
+        const minimumSold = parseInt($minimumSoldInput.value);
 
-    const lacksAllSearchedWords = element => !searchedWords.every(w => element.dataset.searcheableText.includes(w));
-    const hasAnyExcludedWords = element => excludedWords.some(w => element.dataset.searcheableText.includes(w));
+        const lacksAllSearchedWords = element => !searchedWords.every(w => element.dataset.searchableText.includes(w));
+        const hasAnyExcludedWords = element => excludedWords.some(w => element.dataset.searchableText.includes(w));
+        const hasSoldLessThan = element => element.dataset.soldCount < minimumSold;
 
-    const withSearcheableText = el => {
-        el.dataset.searcheableText = toSearcheable(el.querySelector('.Cve6sh')?.textContent ?? '');
-        return el;
-    };
+        const withSearchableText = el => {
+            el.dataset.searchableText = toSearchable($('.Cve6sh', el)?.textContent ?? '');
+            return el;
+        };
 
-    const toggleHidden = (count, el) => {
-        if (lacksAllSearchedWords(el) || hasAnyExcludedWords(el)) {
-            el.style.display = 'none';
-            count++;
-        } else {
-            el.style.display = 'block';
+        const withSoldCount = el => {
+            const soldCountText = $('.r6HknA.uEPGHT', el)?.textContent;
+            el.dataset.soldCount = soldCountText?.includes('mil') ? 1000 : parseInt(soldCountText);
+            return el;
+        };
+
+        const toggleHidden = (counts, el) => {
+            if (lacksAllSearchedWords(el) || hasAnyExcludedWords(el)) {
+                el.style.display = 'none';
+                counts[0]++;
+            } else if (!isNaN(minimumSold) && hasSoldLessThan(el)){
+                el.style.display = 'none';
+                counts[1]++;
+            } else {
+                el.style.display = 'block';
+            }
+            return counts;
+        };
+
+        let $loadedProducts = $products
+            .map(withSearchableText)
+            .filter(p => p.dataset.searchableText);
+        if (!isNaN(minimumSold)) {
+            $loadedProducts.map(withSoldCount);
         }
-        return count;
+
+        const hiddenCounts = $loadedProducts.reduce(toggleHidden, [0, 0]);
+
+        const excludedMsg = excludedWords.length ? ` -'${excludedWords.join(' ')}'` : '';
+        console.log(
+            $products.length + ' products, ' +
+            $loadedProducts.length + ' loaded, ' +
+            `${hiddenCounts[0]} hidden for '${searchedWords.join(' ')}'${excludedMsg},` +
+            `${hiddenCounts[1]} hidden for less than ${minimumSold} sold`
+        );
     };
 
-    const $loadedProducts = $products
-        .map(withSearcheableText)
-        .filter(p => p.dataset.searcheableText);
+    let filterProducts;
+    const init = () => {
+        filterProducts && filterProducts();
 
-    const hiddenCount = $loadedProducts.reduce(toggleHidden, 0);
+        const $searchBar = $('.shopee-searchbar-input');
+        if (!$searchBar || $searchBar.querySelector('#excludedWords')) return;
 
-    const excludedMsg = excludedWords.length ? ` -'${excludedWords.join(' ')}'` : '';
-    console.log(`${$products.length} products, ${$loadedProducts.length} loaded, ${hiddenCount} hidden for '${searchedWords.join(' ')}'${excludedMsg}`);
-};
+        console.log('shopee filter enabled');
 
-let filterProducts;
-const enable = () => {
-    const $searchBar = $('.shopee-searchbar-input');
-    if (!$searchBar || $searchBar.querySelector('#excludedWords')) return;
+        const $searchedWordsInput = $('.shopee-searchbar-input__input');
+        const $minimumSoldInput = el('input', { id: 'minimumSold', style: 'width: 70px;', placeholder: isBrazil() ? 'vendido X+' : 'sold X+', onkeyup: function(e) { if (e.key === 'Enter') filterProducts(); } });
+        const $excludedWordsInput = el('input', { id: 'excludedWords', placeholder: isBrazil() ? 'excluir palavras' : 'exclude words', onkeyup: function(e) { if (e.key === 'Enter') filterProducts(); } });
+        filterProducts = filter($searchedWordsInput, $excludedWordsInput, $minimumSoldInput);
 
-    console.log('shopee filter enabled');
+        const $filterButton = el('button', {
+            type: 'button',
+            onclick: filterProducts,
+            style: `
+                background: no-repeat url(${toBase64(filterIconSvg)});
+                padding: 13px;
+                margin-top: 3px;
+                border: none;
+            `,
+        });
 
-    const $searchedWordsInput = $('.shopee-searchbar-input__input');
-    const $excludedWordsInput = el('input', { id: 'excludedWords', placeholder: isBrazil() ? 'excluir palavras' : 'exclude words', onkeyup: function(e) { if (e.key === 'Enter') filterProducts(); } });
-    filterProducts = filter($searchedWordsInput, $excludedWordsInput);
+        $searchBar.appendChild($minimumSoldInput);
+        $searchBar.appendChild($excludedWordsInput);
+        $searchBar.appendChild($filterButton);
+    };
 
-    const $filterButton = el('button', {
-        type: 'button',
-        onclick: filterProducts,
-        style: `
-            background: no-repeat url(${toBase64(filterIconSvg)});
-            padding: 13px;
-            margin-top: 3px;
-            border: none;
-        `,
-    });
-
-    $searchBar.appendChild($excludedWordsInput);
-    $searchBar.appendChild($filterButton);
-};
-
-const observer = new MutationObserver(() => {
-    enable();
-    filterProducts && filterProducts();
-});
-observer.observe(document.body, { childList: true, subtree: true });
+    onMutation(init);
