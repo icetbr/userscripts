@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Shopee Advanced Search
 // @description Filter search results containing ALL specified words, supporting word exclusion and minimum sold.
-// @version     1.1.1
+// @version     1.1.2
 // @author      icetbr
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=shopee.com.br
 // @include     https://shopee.*/*
@@ -45,8 +45,9 @@ const filterIconSvg = `
 const isThousands = string => ['k', 'mil'].some(s => string?.includes(s));
 
 const parseNumber = string => {
-    const number = parseFloat(string?.replace(',', '.').match(/[\d\.]+/g));
-    return isThousands(string) ? number * 1000 : number;
+    let number = parseFloat(string?.replace(',', '.').match(/[\d\.]+/g));
+    number = isThousands(string) ? number * 1000 : number;
+    return isNaN(number) ? 0 : number;
 };
 
 const filter = ($searchedWordsInput, $excludedWordsInput, $minimumSoldInput) => () => {
