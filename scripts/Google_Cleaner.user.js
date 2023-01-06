@@ -1,29 +1,45 @@
 // ==UserScript==
 // @name        Google Cleaner
-// @description Moves the top bar (All, Videos, News...) to sidebar, hides "rich search content", old style links
-// @version     3.7.2
+// @description Declutter, focus on most used actions, collapses seldom used ones, easier title scanning.
+// @version     3.8.0
 // @author      icetbr
-
+// @icon        https://www.google.com/s2/favicons?sz=64&domain=google.com
 // @include     https://www.google.*/search*
-// @icon        https://www.google.com/s2/favicons?domain=google.com
-
 // @license     MIT
 // @namespace   https://github.com/icetbr/userscripts
 // @updateURL   https://openuserjs.org/meta/icetbr/Google_Cleaner.meta.js
 // @downloadURL https://openuserjs.org/src/scripts/icetbr/Google_Cleaner.user.js
+// @match       <all_urls>
+// @grant       none
 // ==/UserScript==
-/* jshint esversion: 6 */
+var style1 = /*css*/`
+
+.csDOgf, .eFM0qc            { display: none;                     } /* tree dots for more info */
+.g                          { margin-top: -15px;                 } /* spacing between search results */
+.hlcw0c                     { margin-bottom: 0!important;        } /* space after hidden sections */
+.logo                       { left: -193px;                      } /* align logo with sidebar */
+/* LINKS/TITLE */
+
+.FxLDp                      { padding-left: 0;                   } /* sometimes the first entry has an undesired pad */
+h3.LC20lb.MBeuO.DKV0Md      { display: block;                    } /* force (some) links from side to bellow title */
+.yuRUbf > a                 { position: relative; top: -10px;    }
+.iUh30.tjvcx, .qLRx3b.tjvcx { color: green;                    }
+.TbwUpd.NJjxre              { padding-top: 0; position: inherit; }
+
+`;
+
+const el = (name, attrs) => Object.assign(document.createElement(name), attrs),
+
+    style = styles => el('style', { type: 'text/css', textContent: styles }),
+
+    addStyle = styles => document.body.append(style(styles));
 
 const head = document.querySelectorAll('head')[0];
-const { assign } = Object;
-
-const style = styles => assign(document.createElement('style'), { type: 'text/css', textContent: styles });
-const div = attrs => assign(document.createElement('div'), attrs);
 
 const createLink = (attrs, onclick, parent) => {
     if (!parent) return null;
 
-    const link = div(attrs);
+    const link = el('div', attrs);
     link.addEventListener('click', onclick, false);
     parent.append(link);
     return link;
@@ -79,52 +95,10 @@ const ensureNavBar = () => {
     isBarVisible = !isBarVisible;
 };
 
-// This keeps breaking, maybe use parent with jsowner=ow86?
 const showCustomRangePosts = () => {
     ensureNavBar();
     document.querySelectorAll('[jsaction="EEGHee"]')[0].click();
-    // Document.getElementsByClassName('n5Ug4b')[0].style.display = 'block';
-};
 
-const cleanGoogle = () => {
-    document.body.append(style(`
-        /*.ULSxyf,                          Videos and People also Ask sessions */
-        .csDOgf, .eFM0qc {                  /* tree dots for more info */
-           display: none;
-        }
-
-        .g {                                /* spacing between search results */
-          margin-top: -20px;
-        }
-
-        .hlcw0c {                           /* space after hidden sections */
-          margin-bottom: 0px !important;
-        }
-
-        /* LINKS/TITLE */
-
-        .FxLDp {                             /* sometimes the first entry has an undesired pad */
-          padding-left: 0px;
-        }
-
-        h3.LC20lb.MBeuO.DKV0Md {            /* force (some) links from side to bellow title */
-          display: block;
-        }
-
-        .yuRUbf > a {
-            position: relative;
-            top: -10px;
-        }
-
-        .qLRx3b.tjvcx {
-          color: green
-        }
-
-        .TbwUpd.NJjxre {
-          padding-top: 0px;
-          position: inherit;
-        }
-    `));
 };
 
 const needsHiding = text =>
@@ -178,7 +152,7 @@ const addLinks = () => {
 const init = () => {
     toggleNavBar();
     toggleFiltersBar();
-    cleanGoogle();
+    addStyle(style1);
     jsCleanGoogle();
     addLinks();
 };
