@@ -1,7 +1,7 @@
 /* ==UserStyle==
 @name         CleanerReads - A goodreads.com Theme
 @description  Nothing removed, just muted or moved out of the way.
-@version      1.0.0
+@version      1.0.3
 @author       icetbr
 @icon         https://www.google.com/s2/favicons?sz=64&domain=goodreads.com
 @license      MIT
@@ -9,7 +9,7 @@
 @updateURL    https://raw.githubusercontent.com/icetbr/userscripts/main/CleanerReads.user.css
 ==/UserStyle== */
 
-@-moz-document domain("www.goodreads.*") {
+@-moz-document domain("goodreads.com") {
 
 /*****************/
 /*    SIDEBAR    */
