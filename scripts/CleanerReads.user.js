@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        CleanerReads - A Goodreads Theme
 // @description Nothing removed, just muted or moved out of the way.
-// @version     1.0.5
+// @version     1.0.6
 // @author      icetbr
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=goodreads.com
 // @license     MIT
@@ -114,8 +114,7 @@ input::placeholder              { color: #0000005c; }
 .ReviewsSectionStatistics .ReviewsSectionStatistics__ratingStatistics { display: none; }                    /* hide starts count, already shown on sidebar */
 
 /* user reviews gravatar to the left, content centered */
-#ReviewsSection div:nth-child(7) > div:nth-child(2)                       { position: relative; left: -190px; }
-#ReviewsSection div:nth-child(7)                                          { width: 720px; }
+#ReviewsSection .ReviewCard                                           { left: -190px; width: 720px;}
 
 .FeaturedPerson__info                                                 { width: 515px; }
 
