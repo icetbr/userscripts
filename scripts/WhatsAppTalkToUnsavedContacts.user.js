@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        WhatsApp Talk to Unsaved Contacts
 // @description You don't have to leave the WhatsWeb interface to talk to unsaved contacts anymore!
-// @version     1.0.0
+// @version     1.1.0
 // @author      icetbr
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=whatsapp.com
 // @license     MIT
@@ -33,26 +33,27 @@ const $  = (selector, parent = document) => parent.querySelector(selector),
         return observer;
     });
 
-var init = () => {
-    const redirect = e => {
+window.icetbr = {
+    hidden: true,
+
+    redirect: e => {
         if (e.key !== 'Enter') return;
 
         window.location.href=`https://web.whatsapp.com/send/?phone=${e.currentTarget.value}&text&type=phone_number&app_absent=0`;
-    };
-    window.icetbr_redirect = redirect;
+    },
 
+    togglePhoneNumber: () => {
+        $('#unsavedContactPhoneNumber').style.display = window.icetbr.hidden ? 'block' : 'none';
+        window.icetbr.hidden = !window.icetbr.hidden;
+    },
+};
+
+var init = () => {
     const style = 'outline: none; border:none; background-image:none; background-color:transparent; -webkit-box-shadow: none; -moz-box-shadow: none; box-shadow: none; display: none; font-size: 14px; top: -2px;';
-    const $input = el2(`<input id="unsavedContactPhoneNumber" placeholder="Phone number" title: "Ex: 5547999783456" class="Er7QU" style="${style}" onkeyup="icetbr_redirect(event)">`);
+    const $input = el2(`<input id="unsavedContactPhoneNumber" placeholder="Phone number" title: "Ex: 5547999783456" class="Er7QU" style="${style}" onkeyup="icetbr.redirect(event)">`);
 
     const $searchBox = $('._3RN1i._3jaYl');
     $searchBox.appendChild($input);
-
-    const hidden = true;
-    const togglePhoneNumber = () => {
-        $('#unsavedContactPhoneNumber').style.display = hidden ? 'block' : 'none';
-        hidden = !hidden;
-    };
-    window.icetbr_togglePhoneNumber = togglePhoneNumber;
 
     const iconSvg = `
         <svg viewBox="0 0 28 21" height="24" width="17" preserveAspectRatio="xMidYMid meet" class="" fill="none">
@@ -60,7 +61,7 @@ var init = () => {
         </svg>
     `;
     const $button = el2(`
-        <div class="_3OtEr rOo0o" style="left: 15px; top: -1px;"><div class="_3ndVb" role="button" title="Send message to unsaved contact" onclick="icetbr_togglePhoneNumber()"><span>
+        <div class="_3OtEr rOo0o" style="left: 15px; top: -1px;"><div class="_3ndVb" role="button" title="Send message to unsaved contact" onclick="icetbr.togglePhoneNumber()"><span>
         ${iconSvg}
         </span></div><span></span></div>
     `);
