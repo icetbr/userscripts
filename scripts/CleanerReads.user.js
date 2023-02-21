@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        CleanerReads - A Goodreads Theme
 // @description Nothing removed, just muted or moved out of the way.
-// @version     1.0.6
+// @version     1.1.0
 // @author      icetbr
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=goodreads.com
 // @license     MIT
@@ -17,7 +17,7 @@ var style$1 = /*css*/`
 /*    SIDEBAR    */
 /*****************/
 .BookPage__leftColumn           { grid-column-start: 10; grid-column-end: 13; }                   /* move to the right */
-.Sticky                         { position: relative !important; top: 15px !important; }
+.BookPage__leftColumn .Sticky   { position: relative !important; top: 15px !important; z-index: unset } /* z-index needed to prevent being in front of profile menu */
 .BookPage__rightColumn          { grid-column-start: 3; grid-column-end: 10; grid-row-start: 1; } /* make non sticky */
 .BookPage__rightColumn          { overflow: unset }                                               /* allows moving content to it */
 .BookActions > .BookRatingStars { display: none }                                                 /* hide Community Rating (duplicated) */
@@ -31,7 +31,7 @@ var style$1 = /*css*/`
 
 /* pencil icon */
 .Button.Button--secondary.Button--medium.Button--block                  { margin-left: -4px; }
-.Button.Button--secondary.Button--medium.Button--block span:first-child { display: none;}
+.PencilIcon .Button.Button--secondary.Button--medium.Button--block span:first-child { display: none;}
 
 /* top  sticky header as a sidebar */
 .SiteHeaderBanner__topFullImageContainer,
@@ -68,7 +68,8 @@ input::placeholder              { color: #0000005c; }
 
 .BookPageMetadataSection__genres                            { margin-bottom: -4px; }
 .WorkDetails                                                { margin-top: 3.2rem; }    /*  Literary awards */
-.BookDetails .Button__container                             { top: -4px; left: 376px; }
+/* .BookDetails .Button__container                          { top: -4px; left: 376px; }  messes up the More Editions arrows*/
+[aria-label="Book details and editions"]                    { top: -4px; left: 386px; position: relative; }
 .BookDetails .FeaturedDetails                               { margin-bottom: -3rem; overflow: clip; display: flex; } /* flex brings pages count and publish date close together */
 .BookDetails + hr.Divider                                   { display: none }
 .FeaturedDetails p + p::before                              { content: ',\\00a0'; }     /* spacing in 352 pages, January 19, 2023 */
@@ -100,6 +101,7 @@ input::placeholder              { color: #0000005c; }
 .WriteReviewCTA__hero                                                 { display: none; }                    /* What do you Think title */
 #SocialReviews .Text__title3                                          { display: none; }
 .MyReviewCard                                                         { left: -193px; width: 730px;}        /* center align review */
+.MyReviewCardCarousel .DynamicCarousel__itemsArea                     { overflow: unset; }
 
 .Alert--informational                                                 { background-color: unset; }
 .Alert                                                                { padding: unset; color: #00000021; text-align: center; }
@@ -145,7 +147,7 @@ hr.Divider { width: 532px }
 /*****************/
 .BookActions .Button                        { border-radius: unset; font-weight: unset; }
 .BookActions__button                        { margin: unset; width: 100%;}
-.Button--medium                             { padding: unset; height: 2.5rem; /*! width: 100%; */}
+.Button--medium                             { padding: 5px; padding-right: 12px; height: 2.5rem; }
 .Button--wtr                                { background-color: unset; color: unset; }
 .Button--wtr:hover                          { background-color: unset; box-shadow: inset 0 -3px 0 0 var(--color-background-wtr-hover); }
 .Button                                     { transition: unset; border: 0; } /* border-radius: unset; font-weight: unset; */
@@ -184,19 +186,32 @@ hr.Divider { width: 532px }
   box-shadow: inset 0 -3px 0 0 var(--color-text-button-transparent-base);
 }
 
+`;
 
+var muteTopbar = /*css*/`
 
-
-
-
+/* OLD TOPBAR */
+.siteHeader__topLine       { position: unset; box-shadow: unset; background: unset }
+.siteHeader .siteHeader__topLevelLink, .siteHeader .primaryNavMenu__trigger {  color: #00000021; }
+.siteHeader input          { border: 0.1rem solid #0000; }
+.siteHeader .searchBox__icon--magnifyingGlass { opacity: 0.3; }
+.siteHeader input::placeholder              { color: #0000005c !important; }
 
 `;
 
 const $  = (selector, parent = document) => parent.querySelector(selector),
 
-    el = (name, attrs) => Object.assign(document.createElement(name), attrs),
+    el = (name, attrs) => {
+        var $e = document.createElement(name);
 
-    style = styles => el('style', { type: 'text/css', textContent: styles }),
+        for (let prop in attrs) {
+            $e.setAttribute(prop, attrs[prop]);
+        }
+
+        return $e;
+    },
+
+    style = styles => Object.assign(el('style', { type: 'text/css' }), { textContent: styles }),
 
     addStyle = styles => document.body.append(style(styles)),
 
@@ -214,18 +229,33 @@ const $  = (selector, parent = document) => parent.querySelector(selector),
         return observer;
     });
 
+var init = () => {
+    const isHomePage = location.href === 'https://www.goodreads.com/' || location.href.startsWith('https://www.goodreads.com/?');
+    if (!isHomePage) addStyle(muteTopbar);
+
+    const isBookPage = location.href.startsWith('https://www.goodreads.com/book/show');
+    if (!isBookPage) return;
+
+    const pagesRegex = /(.*pages).*/;
+    const $pagesFormat = $('p[data-testid="pagesFormat"]');
+
+    if ($pagesFormat) $pagesFormat.innerText = $pagesFormat.innerText.replace(pagesRegex, '$1');
+
+    const dateRegex = /.*((January|February|March|April|May|June|July|August|September|October|November|December).*)/;
+    const $publicationInfo = $('p[data-testid="publicationInfo"]');
+
+    if ($publicationInfo) $publicationInfo.innerText = $publicationInfo.innerText.replace(dateRegex, '$1');
+
+    waitForEl('div[data-testid="currentlyReadingSignal"]').then(el => {
+        el.innerText = el.innerText.replace(' people are currently reading', ' reading ·');
+    });
+
+    waitForEl('div[data-testid="toReadSignal"]').then(el => {
+        el.innerText = el.innerText.replace(' people', '');
+    });
+
+    $('.AuthorPreview .ContributorLink').replaceWith($('.ContributorLinksList'));
+};
+
 addStyle(style$1);
-
-const pagesRegex = /(.*pages).*/;
-$('p[data-testid="pagesFormat"]').innerText = $('p[data-testid="pagesFormat"]').innerText.replace(pagesRegex, '$1');
-
-const dateRegex = /.*((January|February|March|April|May|June|July|August|September|October|November|December).*)/;
-$('p[data-testid="publicationInfo"]').innerText = $('p[data-testid="publicationInfo"]').innerText.replace(dateRegex, '$1');
-
-waitForEl('div[data-testid="currentlyReadingSignal"]').then(el => {
-    el.innerText = el.innerText.replace(' people are currently reading', ' reading ·');
-});
-
-waitForEl('div[data-testid="toReadSignal"]').then(el => {
-    el.innerText = el.innerText.replace(' people', '');
-});
+init();
