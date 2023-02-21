@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        CleanerReads - A Goodreads Theme
 // @description Nothing removed, just muted or moved out of the way.
-// @version     1.1.0
+// @version     1.1.1
 // @author      icetbr
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=goodreads.com
 // @license     MIT
@@ -233,7 +233,7 @@ var init = () => {
     const isHomePage = location.href === 'https://www.goodreads.com/' || location.href.startsWith('https://www.goodreads.com/?');
     if (!isHomePage) addStyle(muteTopbar);
 
-    const isBookPage = location.href.startsWith('https://www.goodreads.com/book/show');
+    const isBookPage = location.href.includes('/book/show/');
     if (!isBookPage) return;
 
     const pagesRegex = /(.*pages).*/;
