@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name        WhatsApp Talk to Unsaved Contacts
 // @description You don't have to leave the WhatsWeb interface to talk to unsaved contacts anymore!
-// @version     1.1.0
+// @version     1.1.1
 // @author      icetbr
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=whatsapp.com
 // @license     MIT
 // @namespace   https://github.com/icetbr/userscripts
 // @updateURL   https://openuserjs.org/meta/icetbr/WhatsAppTalkToUnsavedContacts.meta.js
 // @downloadURL https://openuserjs.org/src/scripts/icetbr/WhatsAppTalkToUnsavedContacts.user.js
-// @match       https://web.whatsapp.com/
+// @match       https://web.whatsapp.com/*
 // @grant       none
 // ==/UserScript==
 const $  = (selector, parent = document) => parent.querySelector(selector),
