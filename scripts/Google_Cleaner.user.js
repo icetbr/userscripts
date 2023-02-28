@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Google Cleaner
 // @description Declutter, focus on most used actions, collapses seldom used ones, easier title scanning.
-// @version     3.8.0
+// @version     3.9.0
 // @author      icetbr
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=google.com
 // @include     https://www.google.*/search*
@@ -14,23 +14,43 @@
 // ==/UserScript==
 var style1 = /*css*/`
 
-.csDOgf, .eFM0qc            { display: none;                     } /* tree dots for more info */
-.g                          { margin-top: -15px;                 } /* spacing between search results */
-.hlcw0c                     { margin-bottom: 0!important;        } /* space after hidden sections */
+.g                          { margin-bottom: 5px !important;     } /* spacing between search results */
+h3.LC20lb.MBeuO.DKV0Md      { margin-top: 10px                   } /* spacing between search results: from the top */
+#res                        { margin-top: -35px                  } /* search results distance from the input field */
+#taw                        { margin-top: -15px; z-index: 999999;
+                              position: relative;                } /* "SHOWING RESULTS FOR" distance from the input field */
+#eob_4                      { display: none                      } /* People also search for */
+.hlcw0c                     { margin-bottom: 0px !important;     } /* space after hidden sections */
 .logo                       { left: -193px;                      } /* align logo with sidebar */
-/* LINKS/TITLE */
 
+/* LINKS/TITLE */
 .FxLDp                      { padding-left: 0;                   } /* sometimes the first entry has an undesired pad */
 h3.LC20lb.MBeuO.DKV0Md      { display: block;                    } /* force (some) links from side to bellow title */
-.yuRUbf > a                 { position: relative; top: -10px;    }
-.iUh30.tjvcx, .qLRx3b.tjvcx { color: green;                    }
-.TbwUpd.NJjxre              { padding-top: 0; position: inherit; }
+.yuRUbf > a                 { position: relative; top: -13px;    }
+.tjvcx                      { color: green;                    } /* link */
+.TbwUpd.NJjxre              { margin-top: -2px; padding-top: 0;
+                              position: inherit;                 } /* link bellow title */
+.H9lube, .VuuXrf            { display: none                      } /* hide icon and title */
+[jscontroller="exgaYe"]     { display: none                      } /* 3 dots actions hide icon and title */
+.Z26q7c.UK95Uc.jGGQ5e       { margin-bottom: -4px                }
+
+/*.iUh30.tjvcx, .qLRx3b.tjvcx, .tjvcx.GvPZzd.cHaqb { color: green;                    }*/
 
 `;
 
-const el = (name, attrs) => Object.assign(document.createElement(name), attrs),
+const el = (name, attrs) => {
+        var $e = document.createElement(name);
 
-    style = styles => el('style', { type: 'text/css', textContent: styles }),
+        for (let prop in attrs) {
+            $e.setAttribute(prop, attrs[prop]);
+        }
+
+        return $e;
+    },
+
+    el3 = (name, attrs) => Object.assign(document.createElement(name), attrs),
+
+    style = styles => Object.assign(el('style', { type: 'text/css' }), { textContent: styles }),
 
     addStyle = styles => document.body.append(style(styles));
 
@@ -39,7 +59,7 @@ const head = document.querySelectorAll('head')[0];
 const createLink = (attrs, onclick, parent) => {
     if (!parent) return null;
 
-    const link = el('div', attrs);
+    const link = el3('div', attrs);
     link.addEventListener('click', onclick, false);
     parent.append(link);
     return link;
@@ -127,6 +147,7 @@ const jsCleanGoogle = () => {
 
     document.querySelectorAll('.cLjAic.TzHB6b').forEach(hideUndesiredSections);
     document.querySelectorAll('.ULSxyf').forEach(hideUndesiredSections);
+    document.querySelectorAll('.cUnQKe').forEach(hideUndesiredSections);
 };
 
 const addLinks = () => {
