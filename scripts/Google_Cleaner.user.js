@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Google Cleaner
 // @description Declutter, focus on most used actions, collapses seldom used ones, easier title scanning.
-// @version     3.9.0
+// @version     3.10.0
 // @author      icetbr
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=google.com
 // @include     https://www.google.*/search*
@@ -14,27 +14,24 @@
 // ==/UserScript==
 var style1 = /*css*/`
 
-.g                          { margin-bottom: 5px !important;     } /* spacing between search results */
-h3.LC20lb.MBeuO.DKV0Md      { margin-top: 10px                   } /* spacing between search results: from the top */
-#res                        { margin-top: -35px                  } /* search results distance from the input field */
-#taw                        { margin-top: -15px; z-index: 999999;
-                              position: relative;                } /* "SHOWING RESULTS FOR" distance from the input field */
-#eob_4                      { display: none                      } /* People also search for */
-.hlcw0c                     { margin-bottom: 0px !important;     } /* space after hidden sections */
-.logo                       { left: -193px;                      } /* align logo with sidebar */
+h3.LC20lb.MBeuO.DKV0Md      { margin-top: -15px;                  } /* spacing between search results */
+
+div[id^='eob_']             { display: none;                      } /* People also search for */
+.hlcw0c                     { margin-bottom: 0px !important;      } /* space after hidden sections */
+.logo                       { left: -193px;                       } /* align logo with sidebar */
 
 /* LINKS/TITLE */
-.FxLDp                      { padding-left: 0;                   } /* sometimes the first entry has an undesired pad */
-h3.LC20lb.MBeuO.DKV0Md      { display: block;                    } /* force (some) links from side to bellow title */
-.yuRUbf > a                 { position: relative; top: -13px;    }
-.tjvcx                      { color: green;                    } /* link */
+.FxLDp                      { padding-left: 0;                    } /* sometimes the first entry has an undesired pad */
+h3.LC20lb.MBeuO.DKV0Md      { display: block;                     } /* force (some) links from side to bellow title */
+.yuRUbf > a                 { position: relative; top: -13px;     }
+.tjvcx                      { color: green; font-size: 14px;    } /* link */
 .TbwUpd.NJjxre              { margin-top: -2px; padding-top: 0;
-                              position: inherit;                 } /* link bellow title */
-.H9lube, .VuuXrf            { display: none                      } /* hide icon and title */
-[jscontroller="exgaYe"]     { display: none                      } /* 3 dots actions hide icon and title */
-.Z26q7c.UK95Uc.jGGQ5e       { margin-bottom: -4px                }
+                              position: inherit;                  } /* link bellow title */
+.H9lube, .VuuXrf            { display: none;                      } /* hide icon and title */
+[jscontroller="exgaYe"]     { display: none;                      } /* 3 dots actions hide icon and title */
+.Z26q7c.UK95Uc.jGGQ5e       { margin-bottom: -4px;                }
 
-/*.iUh30.tjvcx, .qLRx3b.tjvcx, .tjvcx.GvPZzd.cHaqb { color: green;                    }*/
+
 
 `;
 
@@ -72,7 +69,7 @@ const doLink = tbsParameter => {
 };
 
 let isBarVisible = false;
-const hideNavBarStyle = style('#top_nav, #appbar {display:none;}');
+const hideNavBarStyle = style('#top_nav, #appbar, .rfiSsc {display:none;}');
 const toggleNavBar = () => {
     if (isBarVisible) {
         hideNavBarStyle.remove();
