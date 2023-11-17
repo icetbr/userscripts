@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Shopee Advanced Search
 // @description Filter search results containing ALL specified words, supporting word exclusion and minimum sold.
-// @version     1.1.2
+// @version     1.2.0
 // @author      icetbr
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=shopee.com.br
 // @include     https://shopee.*/*
@@ -12,11 +12,19 @@
 // @match       <all_urls>
 // @grant       none
 // ==/UserScript==
-const $  = (selector, parent = document) => parent.querySelector(selector),
+const $ = (selector, parent = document) => parent.querySelector(selector),
 
     $$ = (selector, parent = document) => Array.from(parent.querySelectorAll(selector)),
 
-    el = (name, attrs) => Object.assign(document.createElement(name), attrs),
+    el = (name, attrs) => {
+        var $e = document.createElement(name);
+
+        for (let prop in attrs) {
+            $e.setAttribute(prop, attrs[prop]);
+        }
+
+        return $e;
+    },
 
     toBase64 = svg => `data:image/svg+xml;base64,${window.btoa(svg)}`,
 
@@ -28,8 +36,8 @@ const $  = (selector, parent = document) => parent.querySelector(selector),
 
     isBrazil = () => window.location.hostname.endsWith('.br'),
 
-    onMutation = fn => new MutationObserver(fn)
-        .observe(document.body, { childList: true, subtree: true });
+    onMutation = (fn, parent = document.body) => new MutationObserver(fn)
+        .observe(parent, { childList: true, subtree: true });
 
 const split = value => value ? value.split(' ') : [];
 
@@ -61,12 +69,12 @@ const filter = ($searchedWordsInput, $excludedWordsInput, $minimumSoldInput) => 
     const hasSoldLessThan = element => element.dataset.soldCount < minimumSold;
 
     const withSearchableText = el => {
-        el.dataset.searchableText = toSearchable($('.Cve6sh', el)?.textContent ?? '');
+        el.dataset.searchableText = toSearchable($('[data-sqe="name"]', el)?.textContent ?? '');
         return el;
     };
 
     const withSoldCount = el => {
-        el.dataset.soldCount = parseNumber($('.r6HknA.uEPGHT', el)?.textContent);
+        el.dataset.soldCount = parseNumber($('[data-sqe="rating"] + div', el)?.textContent);
         return el;
     };
 
