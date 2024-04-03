@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Shopee Advanced Search
 // @description Filter search results containing ALL specified words, supporting word exclusion and minimum sold.
-// @version     1.2.0
+// @version     1.3.0
 // @author      icetbr
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=shopee.com.br
 // @include     https://shopee.*/*
@@ -69,12 +69,16 @@ const filter = ($searchedWordsInput, $excludedWordsInput, $minimumSoldInput) => 
     const hasSoldLessThan = element => element.dataset.soldCount < minimumSold;
 
     const withSearchableText = el => {
-        el.dataset.searchableText = toSearchable($('[data-sqe="name"]', el)?.textContent ?? '');
+        const contentEl = el?.firstChild?.firstChild?.firstChild?.firstChild?.children[1];
+        const nameEl = contentEl?.children[0];
+        el.dataset.searchableText = toSearchable(nameEl?.textContent ?? '');
         return el;
     };
 
     const withSoldCount = el => {
-        el.dataset.soldCount = parseNumber($('[data-sqe="rating"] + div', el)?.textContent);
+        const contentEl = el?.firstChild?.firstChild?.firstChild?.firstChild?.children[1];
+        const ratingEl = contentEl?.children[1]?.children[1];
+        el.dataset.soldCount = parseNumber(ratingEl?.textContent ?? 0);
         return el;
     };
 
