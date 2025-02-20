@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Shopee Advanced Search
-// @description Filter search results containing ALL specified words, supporting word exclusion and minimum sold.
-// @version     1.3.0
+// @description Filter search results containing ALL specified words, supporting word exclusion and minimum/maximum sold.
+// @version     1.4.0
 // @author      icetbr
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=shopee.com.br
 // @include     https://shopee.*/*
@@ -12,6 +12,8 @@
 // @match       <all_urls>
 // @grant       none
 // ==/UserScript==
+global.document = global.document || {};
+
 const $ = (selector, parent = document) => parent.querySelector(selector),
 
     $$ = (selector, parent = document) => Array.from(parent.querySelectorAll(selector)),
@@ -53,31 +55,34 @@ const filterIconSvg = `
 const isThousands = string => ['k', 'mil'].some(s => string?.includes(s));
 
 const parseNumber = string => {
+    string = string + '';
     let number = parseFloat(string?.replace(',', '.').match(/[\d\.]+/g));
     number = isThousands(string) ? number * 1000 : number;
     return isNaN(number) ? 0 : number;
 };
 
-const filter = ($searchedWordsInput, $excludedWordsInput, $minimumSoldInput) => () => {
+const filter = ($searchedWordsInput, $excludedWordsInput, $soldAtLeastInput, $soldAtMostInput) => () => {
     const $products = $$('.shopee-search-item-result__item');
     const searchedWords = split(toSearchable($searchedWordsInput.value));
     const excludedWords = split(toSearchable($excludedWordsInput.value));
-    const minimumSold = parseNumber($minimumSoldInput.value);
+    const soldAtLeast = parseNumber($soldAtLeastInput.value);
+    const soldAtMost = parseNumber($soldAtMostInput.value);
 
     const lacksAllSearchedWords = element => !searchedWords.every(w => element.dataset.searchableText.includes(w));
     const hasAnyExcludedWords = element => excludedWords.some(w => element.dataset.searchableText.includes(w));
-    const hasSoldLessThan = element => element.dataset.soldCount < minimumSold;
+    const hasSoldAtLeast = element => element.dataset.soldCount >= soldAtLeast;
+    const hasSoldAtMost = element => element.dataset.soldCount <= soldAtMost;
 
     const withSearchableText = el => {
         const contentEl = el?.firstChild?.firstChild?.firstChild?.firstChild?.children[1];
-        const nameEl = contentEl?.children[0];
+        const nameEl = contentEl?.children[0]?.children[0];
         el.dataset.searchableText = toSearchable(nameEl?.textContent ?? '');
         return el;
     };
 
     const withSoldCount = el => {
         const contentEl = el?.firstChild?.firstChild?.firstChild?.firstChild?.children[1];
-        const ratingEl = contentEl?.children[1]?.children[1];
+        const ratingEl = contentEl?.children[1]?.children[1]?.children[2];
         el.dataset.soldCount = parseNumber(ratingEl?.textContent ?? 0);
         return el;
     };
@@ -86,9 +91,12 @@ const filter = ($searchedWordsInput, $excludedWordsInput, $minimumSoldInput) => 
         if (lacksAllSearchedWords(el) || hasAnyExcludedWords(el)) {
             el.style.display = 'none';
             counts[0]++;
-        } else if (!isNaN(minimumSold) && hasSoldLessThan(el)){
+        } else if (soldAtLeast && !hasSoldAtLeast(el)){
             el.style.display = 'none';
             counts[1]++;
+        } else if (soldAtMost && !hasSoldAtMost(el)){
+            el.style.display = 'none';
+            counts[2]++;
         } else {
             el.style.display = 'block';
         }
@@ -98,24 +106,23 @@ const filter = ($searchedWordsInput, $excludedWordsInput, $minimumSoldInput) => 
     let $loadedProducts = $products
         .map(withSearchableText)
         .filter(p => p.dataset.searchableText);
-    if (!isNaN(minimumSold)) {
-        $loadedProducts.map(withSoldCount);
+    if (soldAtLeast || soldAtMost) {
+        $loadedProducts = $loadedProducts.map(withSoldCount);
     }
-
-    const hiddenCounts = $loadedProducts.reduce(toggleHidden, [0, 0]);
-
+    const hiddenCounts = $loadedProducts.reduce(toggleHidden, [0, 0, 0]);
     const excludedMsg = excludedWords.length ? ` -'${excludedWords.join(' ')}'` : '';
     console.log(
         $products.length + ' products, ' +
         $loadedProducts.length + ' loaded, ' +
-        `${hiddenCounts[0]} hidden for '${searchedWords.join(' ')}'${excludedMsg},` +
-        `${hiddenCounts[1]} hidden for less than ${minimumSold} sold`
+        `${hiddenCounts[0]} hidden for '${searchedWords.join(' ')}'${excludedMsg}, ` +
+        `${hiddenCounts[1]} hidden for >= ${soldAtLeast} sold, ` +
+        `${hiddenCounts[2]} hidden for <= ${soldAtMost} sold`
     );
 };
 
 let filterProducts;
 const init = () => {
-    filterProducts && filterProducts();
+    if(filterProducts) filterProducts();
 
     const $searchBar = $('.shopee-searchbar-input');
     if (!$searchBar || $searchBar.querySelector('#excludedWords')) return;
@@ -123,13 +130,13 @@ const init = () => {
     console.log('shopee filter enabled');
 
     const $searchedWordsInput = $('.shopee-searchbar-input__input');
-    const $minimumSoldInput = el('input', { id: 'minimumSold', style: 'width: 70px;', placeholder: isBrazil() ? 'vendido X+' : 'sold X+', onkeyup: function(e) { if (e.key === 'Enter') filterProducts(); } });
+    const $soldAtLeastInput = el('input', { id: 'soldAtLeast', style: 'width: 70px;', title: isBrazil() ? 'vendido no mínimo' : 'sold at least', placeholder: isBrazil() ? 'vendido >=' : 'sold >=', onkeyup: function(e) { if (e.key === 'Enter') filterProducts(); } });
+    const $soldAtMostInput = el('input', { id: 'soldAtMost', style: 'width: 70px;', title: isBrazil() ? 'vendido no máximo' : 'sold at most', placeholder: isBrazil() ? 'vendido <=' : 'sold <=', onkeyup: function(e) { if (e.key === 'Enter') filterProducts(); } });
     const $excludedWordsInput = el('input', { id: 'excludedWords', placeholder: isBrazil() ? 'excluir palavras' : 'exclude words', onkeyup: function(e) { if (e.key === 'Enter') filterProducts(); } });
-    filterProducts = filter($searchedWordsInput, $excludedWordsInput, $minimumSoldInput);
+    filterProducts = filter($searchedWordsInput, $excludedWordsInput, $soldAtLeastInput, $soldAtMostInput);
 
     const $filterButton = el('button', {
         type: 'button',
-        onclick: filterProducts,
         style: `
             background: no-repeat url(${toBase64(filterIconSvg)});
             padding: 13px;
@@ -137,8 +144,10 @@ const init = () => {
             border: none;
         `,
     });
+    $filterButton.addEventListener('click', filterProducts);
 
-    $searchBar.appendChild($minimumSoldInput);
+    $searchBar.appendChild($soldAtMostInput);
+    $searchBar.appendChild($soldAtLeastInput);
     $searchBar.appendChild($excludedWordsInput);
     $searchBar.appendChild($filterButton);
 };
