@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Shopee Advanced Search
 // @description Filter search results containing ALL specified words, supporting word exclusion and minimum/maximum sold.
-// @version     1.4.0
+// @version     1.4.1
 // @author      icetbr
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=shopee.com.br
 // @include     https://shopee.*/*
@@ -12,7 +12,6 @@
 // @match       <all_urls>
 // @grant       none
 // ==/UserScript==
-global.document = global.document || {};
 
 const $ = (selector, parent = document) => parent.querySelector(selector),
 
