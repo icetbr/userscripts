@@ -13,7 +13,7 @@
 // @grant       none
 // ==/UserScript==
 
-import "node:util";
+
 
 const assign = Object.assign,
     isPlainObject = (o) => o?.constructor === Object;

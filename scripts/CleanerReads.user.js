@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        CleanerReads - A Goodreads Theme
-// @description Nothing removed, just muted or moved out of the way.
-// @version     1.1.1
+// @description Muting and moving some UI elements in favor of text. Nothing changed, just rearranged.
+// @version     1.4.0
 // @author      icetbr
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=goodreads.com
 // @license     MIT
@@ -11,21 +11,20 @@
 // @match       https://www.goodreads.com/*
 // @grant       none
 // ==/UserScript==
-var style$1 = /*css*/`
+
+var style = /*css*/`
 
 /*****************/
 /*    SIDEBAR    */
 /*****************/
-.BookPage__leftColumn           { grid-column-start: 10; grid-column-end: 13; }                   /* move to the right */
+/* LEFT */
 .BookPage__leftColumn .Sticky   { position: relative !important; top: 15px !important; z-index: unset } /* z-index needed to prevent being in front of profile menu */
-.BookPage__rightColumn          { grid-column-start: 3; grid-column-end: 10; grid-row-start: 1; } /* make non sticky */
-.BookPage__rightColumn          { overflow: unset }                                               /* allows moving content to it */
-.BookActions > .BookRatingStars { display: none }                                                 /* hide Community Rating (duplicated) */
+.BookPage__rightColumn          { overflow: unset }                                                     /* allows moving content to it */
+.BookActions > .BookRatingStars { display: none }                                                       /* hide Community Rating (duplicated) */
 
-.BookPageMetadataSection__ratingStats { position: absolute; right: -314px; top: 344px; }          /* move to the sidebar */
 .RatingStatistics                     { flex-flow: column wrap; align-items: center; }
 
-/*[Want to read], [Buy o nAmazon]*/
+/*[Want to read], [Buy on Amazon]*/
 .BookActions                     { position: absolute; top: 407px; left: 72px; color: var(--color-text-subdued); }
 .BookActions__editActivityButton { display: none; }
 
@@ -41,9 +40,11 @@ var style$1 = /*css*/`
 .ResponsiveImage { max-height: 330px; } /* resizes large covers to prevent overlap */
 
 
- /*****************/
+/*****************/
 /*     TOPBAR     */
 /*****************/
+.NotificationsTray { z-index: 1}  /* prevent being behing content */
+
 /* nearly invisible top navbar */
 .Header                         { position: unset; box-shadow: unset; background: unset; color: #00000021; }
 input::placeholder              { color: #0000005c; }
@@ -54,7 +55,7 @@ input::placeholder              { color: #0000005c; }
 .HeaderSearch__button           { opacity: 0.3; }
 .Text__title3                   { font-size: 1.5rem; }  /* Book Series title */
 .HeaderSecondaryNav             { right: 43px; }        /* align second nav icons with cover */
-
+.HeaderNavDropdown              { z-index: 9999 }       /* .Header position uset made this go to the back */
 
 /*****************/
 /*  MAIN         */
@@ -76,7 +77,7 @@ input::placeholder              { color: #0000005c; }
 .BookDetails__list                                          { margin-top: 35px; }      /* "This Edition" overlaping when fewer details displayed. Ex: https://www.goodreads.com/book/show/60741407-a-christmas-memory */
 
 
-/* 1,004 reading · 11.4k want to read */
+/* 1,004 reading Â· 11.4k want to read */
 .AvatarGroup                          { display: none; }
 .SocialSignalsSection                 { color: var(--color-text-body-light); }
 .SocialSignalCard__caption            { margin-left: unset; }
@@ -89,6 +90,8 @@ input::placeholder              { color: #0000005c; }
 .PageSection__title                                         { display: none; }
 .PageSection                                                { margin-top: 20px; width: 550px;}
 .PageSection .DetailsLayoutRightParagraph__widthConstrained { grid-column: span 10; }
+.PageSection .Divider,
+.lazyload-wrapper .Divider    { width: 693px; }
 
 
 /*****************/
@@ -118,6 +121,8 @@ input::placeholder              { color: #0000005c; }
 /* user reviews gravatar to the left, content centered */
 #ReviewsSection .ReviewCard                                           { left: -190px; width: 720px;}
 
+#ReviewsSection > .Divider                                              { width: 693px;}
+
 .FeaturedPerson__info                                                 { width: 515px; }
 
 .TruncatedContent__text--large                                        { max-height: 48rem; }
@@ -140,7 +145,7 @@ div[data-testid="actions"]                                            { margin-l
   hyphens: auto;
 }
 
-hr.Divider { width: 532px }
+/* hr.Divider { width: 693px } */
 
 /*****************/
 /*    BUTTONS    */
@@ -186,36 +191,102 @@ hr.Divider { width: 532px }
   box-shadow: inset 0 -3px 0 0 var(--color-text-button-transparent-base);
 }
 
-`;
+.BookPage__bookCover { margin-bottom: 200px !important } /* needed for content moved to the sidebar */
 
-var muteTopbar = /*css*/`
+/* .BookPageMetadataSection__genreButton { padding: 0 4px 0px 0; } */
+.BookPageMetadataSection__genreButton a { height: 30px; }
+.Button--tag:after, .Button--tag:before { bottom: 3px }
 
+/*****************/
+/* Conditionals  */
+/*****************/
+
+/* coverOnLeft */
+body.coverOnLeft .BookPageMetadataSection__ratingStats          { position: absolute; left: -334px; top: 344px; }                /* move to the sidebar */
+body.coverOnLeft .BookPage__rightColumn                         { grid-column-start: 4; grid-column-end: 11; grid-row-start: 1; }       /* make non sticky */
+body.coverOnLeft .BookPage__leftColumn                          { margin-left: -44px; }
+body.coverOnLeft .DetailsLayoutRightParagraph__widthConstrained { grid-column: span 8; }
+
+/* coverOnRight */
+body.coverOnRight .BookPageMetadataSection__ratingStats { position: absolute; right: -314px; top: 344px; }                /* move to the sidebar */
+body.coverOnRight .BookPage__leftColumn           { grid-column-start: 10; grid-column-end: 13; }                         /* move to the right */
+body.coverOnRight .BookPage__rightColumn          { grid-column-start: 3; grid-column-end: 10; grid-row-start: 1; }       /* make non sticky */
+
+
+/* authorToTheSidebar */
+/* when loading, the author section is called PageSection, after loading it is .lazyload-wrapper */
+body.authorToTheSidebar .BookPage__leftColumn .PageSection,
+body.authorToTheSidebar .BookPage__leftColumn .lazyload-wrapper             { font-size: 14px; width: 320px; }
+body.authorToTheSidebar .BookPage__leftColumn .PageSection .Divider,
+body.authorToTheSidebar .BookPage__leftColumn .lazyload-wrapper .Divider    { width: 305px; }
+body.authorToTheSidebar .AuthorPreview .FeaturedPerson__infoPrimary         { width: 250px; }
+body.authorToTheSidebar .ContributorLinksList { font-size: 1.2rem; }
+body.authorToTheSidebar .ContributorLink__role { font-size: 1.0rem; }
+/* body.authorToTheSidebar .FeaturedPerson__profile { overflow: scroll } */
+body.authorToTheSidebar .DetailsLayoutRightParagraph__widthConstrained {  grid-column: span 10;  }
+
+
+/* muteTopbar */
 /* OLD TOPBAR */
-.siteHeader__topLine       { position: unset; box-shadow: unset; background: unset }
-.siteHeader .siteHeader__topLevelLink, .siteHeader .primaryNavMenu__trigger {  color: #00000021; }
-.siteHeader input          { border: 0.1rem solid #0000; }
-.siteHeader .searchBox__icon--magnifyingGlass { opacity: 0.3; }
-.siteHeader input::placeholder              { color: #0000005c !important; }
+body.muteTopbar .siteHeader__topLine       { position: unset; box-shadow: unset; background: unset }
+body.muteTopbar .siteHeader .siteHeader__topLevelLink, .siteHeader .primaryNavMenu__trigger {  color: #00000021; }
+body.muteTopbar .siteHeader input          { border: 0.1rem solid #0000; }
+body.muteTopbar .siteHeader .searchBox__icon--magnifyingGlass { opacity: 0.3; }
+body.muteTopbar .siteHeader input::placeholder              { color: #0000005c !important; }
+body.muteTopbar .siteHeader { position: unset; }
+body.muteTopbar .siteHeaderBottomSpacer { display: none }
+
+/* widerText */
+body.widerText .BookPageMetadataSection__description .DetailsLayoutRightParagraph__widthConstrained { width: 690px; }  /* book description */
+body.widerText .BookPage__mainContent .TruncatedContent:nth-child(3) { width: 700px; }                                 /* author description */
+body.widerText .MyReviewCard__content { width: 700px; }
+body.widerText .ReviewCard__content { width: 700px; }
+body.widerText .BookPageMetadataSection__description .TruncatedContent__text { overflow: visible !important; }
+
+/* readersEnjoyedToTheSidebar */
+body.readersEnjoyedToTheSidebar .BookPage__relatedTopContent .DynamicCarousel__item { margin-right: 0px; }
+body.readersEnjoyedToTheSidebar .BookPage__relatedTopContent  .BookCard__content  { display: none }
+body.readersEnjoyedToTheSidebar .BookPage__relatedTopContent  .Divider  { display: none }
+
+body.coverOnLeft.authorToTheSidebar.readersEnjoyedToTheSidebar .MyReviewCard__profile > .ReviewerProfile {    margin-left: 950px;    position: absolute; }
+
+/* sharpCorners */
+body.sharpCorners .BookCover__image { border-radius: unset }
+
+body.hide-CurrentlyReading section:has([data-react-class="ReactComponents.CurrentlyReading"]),
+body.hide-ReadingChallenge section:has([data-react-class="ReactComponents.ReadingChallenge"]),
+body.hide-ShelfDisplay section:has([data-react-class="ReactComponents.ShelfDisplay"]),
+body.hide-UserShelvesBookCounts section:has([data-react-class="ReactComponents.UserShelvesBookCounts"]),
+body.hide-EditorialBlogThumbnail section:has([data-react-class="ReactComponents.EditorialBlogThumbnail"]),
+body.hide-RecommendationsWidget section:has([data-react-class="ReactComponents.RecommendationsWidget"]),
+body.hide-ChoiceWidget section:has([data-react-class="ReactComponents.ChoiceWidget"]),
+body.hide-Footer [data-react-class="ReactComponents.Footer"],
+body.hide-SiteAnnouncement [data-react-class="ReactComponents.SiteAnnouncement"],
+body.hide-GoogleBannerAd .Ad,
+body.hide-ColoredTopBar .SiteHeaderBanner__topFullImageContainer,
+body.hide-ColoredTopBar .siteHeader__topFullImageContainer
+{
+    display: none !important;
+}
 
 `;
 
-const $  = (selector, parent = document) => parent.querySelector(selector),
+const assign = Object.assign,
+    isPlainObject = (o) => o?.constructor === Object;
 
-    el = (name, attrs) => {
-        var $e = document.createElement(name);
+const $ = (s, p = document) => p.querySelector(s),
 
-        for (let prop in attrs) {
-            $e.setAttribute(prop, attrs[prop]);
+    h = new Proxy({} , {
+        get: (_, tag) => (propsOrChild, ...children) => {
+            const isProps = isPlainObject(propsOrChild);
+            const el = assign(document.createElement(tag), isProps ? propsOrChild : {});
+            el.append(...(isProps ? children : [propsOrChild, ...children]));
+            if (isProps && propsOrChild.popovertarget) el.setAttribute('popovertarget', propsOrChild.popovertarget);
+            return el
         }
+    }),
 
-        return $e;
-    },
-
-    style = styles => Object.assign(el('style', { type: 'text/css' }), { textContent: styles }),
-
-    addStyle = styles => document.body.append(style(styles)),
-
-    waitForEl = selector => new Promise(resolve => {
+    waitForEl = (selector) => new Promise(resolve => {
         if ($(selector)) return resolve($(selector));
 
         const observer = new MutationObserver(() => {
@@ -225,37 +296,163 @@ const $  = (selector, parent = document) => parent.querySelector(selector),
             observer.disconnect();
         });
 
-        observer.observe(document.body, { childList: true, subtree: true });
+        observer.observe(document.documentElement, { childList: true, subtree: true });
         return observer;
-    });
+    }),
 
-var init = () => {
-    const isHomePage = location.href === 'https://www.goodreads.com/' || location.href.startsWith('https://www.goodreads.com/?');
-    if (!isHomePage) addStyle(muteTopbar);
+    switchStyle = (nameA, nameB, isAOn) => {
+        document.body.classList.toggle(nameA, isAOn);
+        document.body.classList.toggle(nameB, !isAOn);
+    },
 
-    const isBookPage = location.href.includes('/book/show/');
-    if (!isBookPage) return;
+    toggleStyle = (name, isOn) => document.body.classList.toggle(name, isOn),
 
-    const pagesRegex = /(.*pages).*/;
-    const $pagesFormat = $('p[data-testid="pagesFormat"]');
+    addStyle = (css) => document.body.appendChild(document.createElement("style")).append(css); // needs to be body to ovewrite page's style; don't want to use h helper because I usually use this alone
 
-    if ($pagesFormat) $pagesFormat.innerText = $pagesFormat.innerText.replace(pagesRegex, '$1');
+const
+    addOptionsMenu = (options, savedOptions) => {
+        const { label, input, p, b, div, button, style } = h;
 
-    const dateRegex = /.*((January|February|March|April|May|June|July|August|September|October|November|December).*)/;
-    const $publicationInfo = $('p[data-testid="publicationInfo"]');
+        const save = (id) => (e) => {
+            options[id][1](e.target.checked);
+            savedOptions[id] = e.target.checked;
+            localStorage.setItem('options', JSON.stringify(savedOptions));
+        };
 
-    if ($publicationInfo) $publicationInfo.innerText = $publicationInfo.innerText.replace(dateRegex, '$1');
+        const $options = div({id: 'optionsMenu', popover: ''});
 
-    waitForEl('div[data-testid="currentlyReadingSignal"]').then(el => {
-        el.innerText = el.innerText.replace(' people are currently reading', ' reading ·');
-    });
+        for(const id in options) {
+            if (id === 'CurrentlyReading') $options.append(p(b("Hide from Home page")));
 
-    waitForEl('div[data-testid="toReadSignal"]').then(el => {
-        el.innerText = el.innerText.replace(' people', '');
-    });
+            $options.append(
+                label(input({ type: 'checkbox', id, checked: !!savedOptions[id], onchange: save(id) }), options[id][0])
+            );
+        }
 
-    $('.AuthorPreview .ContributorLink').replaceWith($('.ContributorLinksList'));
-};
+        const $optionsBtn = button({id: 'optionsBtn', popovertarget: 'optionsMenu'}, '⚙');
+        const $style = style(`
+            #optionsMenu { border: 1px solid #d7d7db; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,.2); margin-right: 5px; margin-top: 40px; }
+            #optionsMenu > * { display: block; }
+            #optionsBtn {
+                background: none; border: none; padding: 5px; cursor: pointer; /* Reset button styles*/
+                position: fixed; top: 5px; right: 5px; z-index: 9999;
+                font-size: 26px; opacity: 0.4; transition: opacity 0.2s, transform 0.2s;
+            }
+            #optionsBtn:hover { opacity: 1; transform: scale(1.1); }
+        `);
 
-addStyle(style$1);
-init();
+        const $host = div({id: 'options'});
+        const shadow = $host.attachShadow({ mode: 'open' });
+        shadow.append($style, $optionsBtn, $options);
+        document.body.append($host);
+    },
+
+    styleBookPages = () => {
+        toggleStyle('coverOnRight', true);
+
+        // 352 pages, Kindle Edition
+        const $pagesFormat = $('p[data-testid="pagesFormat"]');
+        if ($pagesFormat) $pagesFormat.innerText = $pagesFormat.innerText.replace(/(.*pages).*/, '$1');
+
+        // Expected publication January 19, 2023
+        const dateRegex = /.*((January|February|March|April|May|June|July|August|September|October|November|December).*)/;
+        const $publicationInfo = $('p[data-testid="publicationInfo"]');
+        if ($publicationInfo) $publicationInfo.innerText = $publicationInfo.innerText.replace(dateRegex, '$1');
+
+        // 263 people are currently reading
+        waitForEl('div[data-testid="currentlyReadingSignal"]').then(el => el.innerText = el.innerText.replace(' people are currently reading', ' reading ·'));
+
+        // 11.4k people want to read
+        waitForEl('div[data-testid="toReadSignal"]').then(el => el.innerText = el.innerText.replace(' people', ''));
+
+        // moves authors to the bio section
+        waitForEl('.AuthorPreview .ContributorLink').then(el => el.replaceWith($('.ContributorLinksList')));
+
+        // the author is removed by the end of the page load, this realocates the translator that was added in the previous step
+        // document.addEventListener('readystatechange', _ => {
+        //     if (document.readyState === "complete") {
+        //         waitForEl('.AuthorPreview .ContributorLink').then(el => el.replaceWith($('.ContributorLinksList')))
+        //     }
+        // })
+    },
+
+    styleOptionals = async () => {
+        const
+            /* when loading, the author section is called PageSection, after loading it is .lazyload-wrapper */
+            toggleAboutTheAuthorToTheSidebar = isOn => {
+                toggleStyle('authorToTheSidebar', isOn);
+                waitForEl('.PageSection').then(el =>
+                    waitForEl(isOn ? '.BookPage__leftColumn .Sticky .BookActions' : '.SocialSignalsSection ~.Divider').then(p => p.insertAdjacentElement('afterend', el))
+                );
+                // toggleStyle('authorToTheSidebar', isOn)
+                // if (isOn) {
+                //     if (document.readyState === "complete") {
+                //         // $('.BookPage__leftColumn .Sticky').append($('.AuthorPreview').parentElement)
+                //         $('.BookPage__leftColumn .Sticky .BookActions').insertAdjacentElement('afterend', $('.AuthorPreview').parentElement)
+                //     } else {
+                //         waitForEl('.BookPageMetadataSection .PageSection').then(el => {
+                //             $('.BookPage__leftColumn  .Sticky').append(el)
+                //         })
+                //     }
+                // } else {
+                //     $('.SocialSignalsSection ~.Divider').insertAdjacentElement('afterend', $('.AuthorPreview').parentElement)
+                // }
+            },
+
+            toggleReadersEnjoyedSidebar = isOn => {
+                toggleStyle('readersEnjoyedToTheSidebar', isOn);
+                waitForEl('.BookPage__relatedTopContent').then(el =>
+                    isOn
+                       ? $('.BookPage__leftColumn .Sticky').append(el)
+                       : $('.BookPage__mainContent').insertAdjacentElement('afterend', el));
+            },
+
+            options = {
+                moveAboutTheAuthorToTheSidebar:         ["Move About the Author to the sidebar",               isOn => toggleAboutTheAuthorToTheSidebar(isOn)],
+                moveReadersAlsoEnjoyedToTheSidebar:     ["Move Readers Also Enjoyed to the sidebar",           isOn => toggleReadersEnjoyedSidebar(isOn)],
+                showCoverOnTheLeft:                     ["Show cover on the left",                             isOn => switchStyle('coverOnLeft', 'coverOnRight', isOn)],
+                removeBookCoverRoundedCorners:          ["Remove book cover rounded corners",                  isOn => toggleStyle('sharpCorners', isOn)],
+                makeTextWider:                          ["Make text wider",                                    isOn => toggleStyle('widerText', isOn)],
+                GoogleBannerAd:                         ["Hide Google Ads (AdBlock is better)",                isOn => toggleStyle('hide-GoogleBannerAd', isOn)],
+                ColoredTopBar:                          ["Hide Colored side banner",                           isOn => toggleStyle('hide-ColoredTopBar', isOn)],
+                CurrentlyReading:                       ["Currently Reading",                                  isOn => toggleStyle('hide-CurrentlyReading', isOn)],
+                ReadingChallenge:                       ["Reading Challenge",                                  isOn => toggleStyle('hide-ReadingChallenge', isOn)],
+                ShelfDisplay:                           ["Want to Read",                                       isOn => toggleStyle('hide-ShelfDisplay', isOn)],
+                UserShelvesBookCounts:                  ["Bookshelves",                                        isOn => toggleStyle('hide-UserShelvesBookCounts', isOn)],
+                EditorialBlogThumbnail:                 ["News & Interviews",                                  isOn => toggleStyle('hide-EditorialBlogThumbnail', isOn)],
+                RecommendationsWidget:                  ["Recommendations",                                    isOn => toggleStyle('hide-RecommendationsWidget', isOn)],
+                ChoiceWidget:                           ["Goodreads Choice Awards",                            isOn => toggleStyle('hide-ChoiceWidget', isOn)],
+                Footer:                                 ["Company / Work With Us / Connect",                   isOn => toggleStyle('hide-Footer', isOn)],
+                SiteAnnouncement:                       ["Site Announcements (top of middle column)",          isOn => toggleStyle('hide-SiteAnnouncement', isOn)],
+            },
+
+            savedOptions = JSON.parse(localStorage.getItem('options') || '{}');
+
+        await waitForEl(isHomePage ? '[data-react-class="ReactComponents.UserShelvesBookCounts"]' : '.BookCover__image');
+
+        addOptionsMenu(options, savedOptions);
+        for (const i in savedOptions) options[i][1](savedOptions[i]);
+
+        // the author is removed by the end of the page load, this reaplies the style
+        // document.addEventListener('readystatechange', _ => {
+        //     if (document.readyState === "complete") {
+        //         if (options.moveAboutTheAuthorToTheSidebar) {
+        //             $('.BookPage__leftColumn  .Sticky').append($('.AuthorPreview').parentElement)
+        //         }
+        //     }
+        // })
+    },
+
+    isHomePage = location.href === 'https://www.goodreads.com/' || location.href.startsWith('https://www.goodreads.com/?'),
+    isBookPage = location.href.includes('/book/show/'),
+
+    init = async () => {
+        console.log('[cleanerreads]', 'adding styles');
+
+        addStyle(style);
+        if (!isHomePage) toggleStyle('muteTopbar', true);
+        if (isBookPage) styleBookPages();
+        await styleOptionals();
+    };
+
+await waitForEl('body').then(init);
