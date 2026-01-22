@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        CleanerReads - A Goodreads Theme
 // @description Muting and moving some UI elements in favor of text. Nothing changed, just rearranged.
-// @version     1.4.0
+// @version     1.4.2
 // @author      icetbr
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=goodreads.com
 // @license     MIT
@@ -455,4 +455,4 @@ const
         await styleOptionals();
     };
 
-await waitForEl('body').then(init);
+waitForEl('body').then(init);

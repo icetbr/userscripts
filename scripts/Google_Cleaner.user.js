@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Google Cleaner
 // @description Old style search results for easier title scanning and faster access to common search filters.
-// @version     4.0.0
+// @version     4.0.1
 // @author      icetbr
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=google.com
 // @include     https://www.google.*/search*
@@ -13,36 +13,33 @@
 // @grant       none
 // ==/UserScript==
 
-
-
 const assign = Object.assign,
     isPlainObject = (o) => o?.constructor === Object;
 
 const $ = (s, p = document) => p.querySelector(s),
+
     $$ = (s, p = document) => p.querySelectorAll(s),
-    toggle = (el) => (el.style.display = el.style.display === "none" ? "" : "none"),
-    h = new Proxy(
-        {},
-        {
-            get:
-                (_, tag) =>
-                (propsOrChild, ...children) => {
-                    const isProps = isPlainObject(propsOrChild);
-                    const el = assign(document.createElement(tag), isProps ? propsOrChild : {});
-                    el.append(...(isProps ? children : [propsOrChild, ...children]));
-                    return el;
-                },
-        },
-    ),
-    //@ts-expect-error
-    addCss = (css) => document.body.append(h.style(css)); // needs to be body to ovewrite page's style
-// const { div, a } = h;
-// const myDiv = div({ id: 'main' }, a('Click me'));
-// const noProps = div('Just text')
+
+    toggle = (el, isOn) => el.style.display = el.style.display === 'none' ? '' : 'none',
+
+    h = new Proxy({} , {
+        get: (_, tag) => (propsOrChild, ...children) => {
+            const isProps = isPlainObject(propsOrChild);
+            const el = assign(document.createElement(tag), isProps ? propsOrChild : {});
+            el.append(...(isProps ? children : [propsOrChild, ...children]));
+            if (isProps && propsOrChild.popovertarget) el.setAttribute('popovertarget', propsOrChild.popovertarget);
+            return el
+        }
+    }),
+
+    toggleStyle = (name, isOn) => document.body.classList.toggle(name, isOn),
+
+    addStyle = (css) => document.body.appendChild(document.createElement("style")).append(css); // needs to be body to ovewrite page's style; don't want to use h helper because I usually use this alone
 
 const { div, button, a, span } = h;
 
-const css = `
+const
+    style = `
         #gc-links                   { display: flex; flex-direction: column; gap: 8px; align-items: center; font-size: 11px; position: absolute; top: 95px; left: 37px; z-index: 999 }
         #gc-links :is(a, button)    { all: unset; cursor: pointer; &:hover { text-decoration: underline }}
         #gc-links > :first-child    { padding-bottom: 4px; }
@@ -61,79 +58,82 @@ const css = `
 
         .tjvcx                      { color: green; font-size: 14px;      } /* link */
         .H9lube, .VuuXrf, .DDKf1c   { display: none;                      } /* hide link icon and title */
+
+        body.moveTopbarUp #main { margin-top: -70px; }
     `,
-    toggleTopbar = () => $$("#top_nav, #appbar, .rfiSsc, .caNvfd").forEach(toggle),
-    toggleFiltersbar = () => toggle($("#gc-filtersbar")),
+
+    toggleTopbar = () => toggleStyle('moveTopbarUp', true),
+
+    toggleFiltersbar = () => toggle($('#gc-filtersbar')),
+
     addLinks = () => {
-        const toggleEnglishOnly = () => {
+        const
+            toggleEnglishOnly = () => {
                 const p = new URLSearchParams(location.search);
-                p.has("gl") ? p.delete("gl") : p.set("gl", "us");
-                return `?${p}`;
+                p.has('gl') ? p.delete('gl') : p.set('gl', 'us');
+                return `?${p}`
             },
-            doLink = (tbsParameter) => {
+            doLink = tbsParameter => {
                 const p = new URLSearchParams(location.search);
-                p.set("tbs", tbsParameter);
-                return `?${p}`;
+                p.set('tbs', tbsParameter);
+                return `?${p}`
             },
             showPast3YearsPosts = () => {
                 const d = new Date();
                 let minDate = `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear() - 2}`;
-                return doLink(`cdr:1,cd_min:${minDate},cd_max:`);
+                return doLink(`cdr:1,cd_min:${minDate},cd_max:`)
             },
-            prependLink = (qParameter) => {
+            prependLink = qParameter => {
                 const p = new URLSearchParams(location.search);
-                const query = p
-                    .get("q")
-                    .replace(/\s*site:.*\s*/, "")
-                    .concat(" " + qParameter);
+                const query =
+                    p.get('q')
+                    .replace(/\s*site:.*\s*/, '')
+                    .concat(' ' + qParameter);
 
-                p.set("q", query);
-                return `?${p}`;
+                p.set('q', query);
+                return `?${p}`
             };
 
-        document.body.append(
-            div(
-                { id: "gc-links" },
-                button({ onclick: toggleTopbar }, "Toggle topbar"),
-                a({ href: toggleEnglishOnly() }, "Toggle english only"),
-                a({ href: doLink("qdr:y") }, "Past year"),
-                a({ href: showPast3YearsPosts() }, "Past 3 years"),
-                a({ href: prependLink("site:news.ycombinator.com") }, "Hackernews"),
-                a({ href: prependLink("site:reddit.com") }, "Reddit"),
-                button({ onclick: toggleFiltersbar }, "+"),
+            document.body.append(
+                div({id:'gc-links'},
+                    button({onclick:toggleTopbar}, 'Toggle topbar'),
+                    a({href:toggleEnglishOnly()}, 'Toggle english only'),
+                    a({href:doLink('qdr:y')}, 'Past year'),
+                    a({href:showPast3YearsPosts()}, 'Past 3 years'),
+                    a({href:prependLink('site:news.ycombinator.com')}, 'Hackernews'),
+                    a({href:prependLink('site:reddit.com')}, 'Reddit'),
+                    button({onclick:toggleFiltersbar}, '+'),
 
-                div(
-                    { id: "gc-filtersbar" },
-                    a({ href: doLink("qdr:") }, "Any time"),
-                    a({ href: doLink("qdr:h") }, "Past hour"),
-                    a({ href: doLink("qdr:d") }, "Past 24 hours"),
-                    a({ href: doLink("qdr:w") }, "Past week"),
-                    a({ href: doLink("qdr:m") }, "Past month"),
-                ),
-            ),
-        );
+                    div({id:'gc-filtersbar'},
+                        a({href:doLink('qdr:')}, 'Any time'),
+                        a({href:doLink('qdr:h')}, 'Past hour'),
+                        a({href:doLink('qdr:d')}, 'Past 24 hours'),
+                        a({href:doLink('qdr:w')}, 'Past week'),
+                        a({href:doLink('qdr:m')}, 'Past month'),
+                    )
+                )
+            );
     },
+
     showRealUrls = () => {
-        $$("cite").forEach((e) => {
-            const url = (e.textContent.startsWith("http") ? e.textContent : e.closest("a")?.href || "")
-                .replace("https://", "")
-                .replace("www.", "");
-            if (!url) return;
-            const breadcrumb = span({ className: "ylgVCe ob9lvb", role: "text" }, ` › ${e.textContent}`);
+        $$('cite').forEach(e => {
+            const url = (e.textContent.startsWith('http') ? e.textContent : e.closest('a')?.href || '').replace('https://', '').replace('www.', '');
+            if (!url) return
+            const breadcrumb = span({className: "ylgVCe ob9lvb", role: "text"}, ` › ${e.textContent}`);
 
             const newNodes =
-                e.textContent.startsWith("http") ? [url]
-                : url.startsWith("reddit.com") ? [url.split("/comments")[0], breadcrumb]
-                : url.startsWith("youtube.com") ? ["youtube.com", breadcrumb]
-                : url.startsWith("stackoverflow.com") ? ["stackoverflow.com", breadcrumb]
-                : [url, breadcrumb];
-            e.textContent = "";
-            newNodes.forEach((n) => e.append(n)); // needs to append one at a time because otherwise the DomNode is casted to a string
+                e.textContent.startsWith('http')    ? [url] :
+                url.startsWith('reddit.com')        ? [url.split('/comments')[0], breadcrumb] :
+                url.startsWith('youtube.com')       ? ['youtube.com', breadcrumb] :
+                url.startsWith('stackoverflow.com') ? ['stackoverflow.com', breadcrumb] :
+                                                      [url, breadcrumb];
+            e.textContent = '';
+            newNodes.forEach(n => e.append(n)); // needs to append one at a time because otherwise the DomNode is casted to a string
         });
     };
 
-if (!document.title.includes("Google Shopping")) {
-    addCss(css);
+if (!document.title.includes('Google Shopping')) {
+    addStyle(style);
     addLinks();
     toggleTopbar();
     toggleFiltersbar();
