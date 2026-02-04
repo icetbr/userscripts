@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Google Cleaner
 // @description Old style search results for easier title scanning and faster access to common search filters.
-// @version     4.0.1
+// @version     4.1.0
 // @author      icetbr
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=google.com
 // @include     https://www.google.*/search*
@@ -9,9 +9,37 @@
 // @namespace   https://github.com/icetbr/userscripts
 // @updateURL   https://openuserjs.org/meta/icetbr/Google_Cleaner.meta.js
 // @downloadURL https://openuserjs.org/src/scripts/icetbr/Google_Cleaner.user.js
-// @match       <all_urls>
 // @grant       none
 // ==/UserScript==
+
+var style = /*css*/`
+
+#gc-links                   { display: flex; flex-direction: column; gap: 8px; align-items: center; font-size: 11px; position: absolute; top: 95px; left: 37px; z-index: 999 }
+#gc-links :is(a, button)    { all: unset; cursor: pointer; &:hover { text-decoration: underline }}
+#gc-links > :first-child    { padding-bottom: 4px; }
+#gc-filtersbar              { display: flex; flex-direction: column; gap: 6px; margin-left: 18px; }
+
+.logo                       { left: -193px;                       } /* align logo with sidebar */
+.zLSRge                     { border: none !important;            } /* grey line bellow navigation bar */
+#taw                        { position: relative; z-index: 1;     } /* prevents "did you mean" from being cropped */
+
+
+.MjjYud                     { margin-top: -10px;                  } /* spacing between search results */
+.yuRUbf                     { line-height: 0.58;                  }
+
+.B6fmyf.Mg1HEd              { display: none;                      } /* three dots menu in each link */
+.V9tjod, .V9tjod .LC20lb, .V9tjod .ESMNde     { transform: none;                  } /* link bellow title */
+.V9tjod     { margin-bottom: 5px;                  }
+
+/* a[jsname='UWckNb']:has(> a.active) */
+
+
+.tjvcx                      { color: green; font-size: 14px;      } /* link */
+.H9lube, .VuuXrf, .DDKf1c   { display: none;                      } /* hide link icon and title */
+
+body.moveTopbarUp #main { margin-top: -60px; }
+
+`;
 
 const assign = Object.assign,
     isPlainObject = (o) => o?.constructor === Object;
@@ -39,30 +67,7 @@ const $ = (s, p = document) => p.querySelector(s),
 const { div, button, a, span } = h;
 
 const
-    style = `
-        #gc-links                   { display: flex; flex-direction: column; gap: 8px; align-items: center; font-size: 11px; position: absolute; top: 95px; left: 37px; z-index: 999 }
-        #gc-links :is(a, button)    { all: unset; cursor: pointer; &:hover { text-decoration: underline }}
-        #gc-links > :first-child    { padding-bottom: 4px; }
-        #gc-filtersbar              { display: flex; flex-direction: column; gap: 6px; margin-left: 18px; }
-
-        .logo                       { left: -193px;                       } /* align logo with sidebar */
-        .zLSRge                     { border: none !important;            } /* grey line bellow navigation bar */
-        #taw                        { position: relative; z-index: 1;     } /* prevents "did you mean" from being cropped */
-
-
-        .MjjYud                     { margin-top: -30px;                  } /* spacing between search results */
-        .yuRUbf                     { line-height: 0.58;                  }
-
-        .B6fmyf.Mg1HEd              { display: none;                      } /* three dots menu in each link */
-        a[jsname='UWckNb'] > div    { position: inherit;                  } /* link bellow title */
-
-        .tjvcx                      { color: green; font-size: 14px;      } /* link */
-        .H9lube, .VuuXrf, .DDKf1c   { display: none;                      } /* hide link icon and title */
-
-        body.moveTopbarUp #main { margin-top: -70px; }
-    `,
-
-    toggleTopbar = () => toggleStyle('moveTopbarUp', true),
+    toggleTopbar = () => toggleStyle('moveTopbarUp'),
 
     toggleFiltersbar = () => toggle($('#gc-filtersbar')),
 
@@ -138,4 +143,8 @@ if (!document.title.includes('Google Shopping')) {
     toggleTopbar();
     toggleFiltersbar();
     showRealUrls();
+
+    // $$('a[jsname="UWckNb"]').forEach(a => {
+    //     a.prepend(a.removeChild($('div', a)))
+    // })
 }
