@@ -1,14 +1,13 @@
 // ==UserScript==
 // @name        CleanerReads - A Goodreads Theme
 // @description Muting and moving some UI elements in favor of text. Nothing changed, just rearranged.
-// @version     1.4.2
+// @version     1.4.3
 // @author      icetbr
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=goodreads.com
 // @license     MIT
 // @namespace   https://github.com/icetbr/userscripts
 // @updateURL   https://openuserjs.org/meta/icetbr/CleanerReads.meta.js
 // @downloadURL https://openuserjs.org/src/scripts/icetbr/CleanerReads.user.js
-// @match       https://www.goodreads.com/*
 // @grant       none
 // ==/UserScript==
 
@@ -129,7 +128,7 @@ input::placeholder              { color: #0000005c; }
 .TruncatedContent__text--expanded                                     { max-height: none; overflow-y: visible; }
 
 /* user's reviews */
-.SocialFooter                                                         { display: flex }
+.SocialFooter                                                         { display: flex; flex-wrap: wrap; }
 .SocialFooter .Button                                                 { font-weight: 400; }
 .ReviewCard .Text__title4                                             { font-weight: 400; }
 div[data-testid="actions"]                                            { margin-left: 15px; margin-top: -1px; }
@@ -367,13 +366,6 @@ const
 
         // moves authors to the bio section
         waitForEl('.AuthorPreview .ContributorLink').then(el => el.replaceWith($('.ContributorLinksList')));
-
-        // the author is removed by the end of the page load, this realocates the translator that was added in the previous step
-        // document.addEventListener('readystatechange', _ => {
-        //     if (document.readyState === "complete") {
-        //         waitForEl('.AuthorPreview .ContributorLink').then(el => el.replaceWith($('.ContributorLinksList')))
-        //     }
-        // })
     },
 
     styleOptionals = async () => {
@@ -384,19 +376,6 @@ const
                 waitForEl('.PageSection').then(el =>
                     waitForEl(isOn ? '.BookPage__leftColumn .Sticky .BookActions' : '.SocialSignalsSection ~.Divider').then(p => p.insertAdjacentElement('afterend', el))
                 );
-                // toggleStyle('authorToTheSidebar', isOn)
-                // if (isOn) {
-                //     if (document.readyState === "complete") {
-                //         // $('.BookPage__leftColumn .Sticky').append($('.AuthorPreview').parentElement)
-                //         $('.BookPage__leftColumn .Sticky .BookActions').insertAdjacentElement('afterend', $('.AuthorPreview').parentElement)
-                //     } else {
-                //         waitForEl('.BookPageMetadataSection .PageSection').then(el => {
-                //             $('.BookPage__leftColumn  .Sticky').append(el)
-                //         })
-                //     }
-                // } else {
-                //     $('.SocialSignalsSection ~.Divider').insertAdjacentElement('afterend', $('.AuthorPreview').parentElement)
-                // }
             },
 
             toggleReadersEnjoyedSidebar = isOn => {
@@ -432,15 +411,6 @@ const
 
         addOptionsMenu(options, savedOptions);
         for (const i in savedOptions) options[i][1](savedOptions[i]);
-
-        // the author is removed by the end of the page load, this reaplies the style
-        // document.addEventListener('readystatechange', _ => {
-        //     if (document.readyState === "complete") {
-        //         if (options.moveAboutTheAuthorToTheSidebar) {
-        //             $('.BookPage__leftColumn  .Sticky').append($('.AuthorPreview').parentElement)
-        //         }
-        //     }
-        // })
     },
 
     isHomePage = location.href === 'https://www.goodreads.com/' || location.href.startsWith('https://www.goodreads.com/?'),
